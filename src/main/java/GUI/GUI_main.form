@@ -557,7 +557,7 @@
         </Container>
         <Container class="javax.swing.JTabbedPane" name="tbpn_editor">
           <Events>
-            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="onTabDoubleClicked"/>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="onCloseTabClicked"/>
           </Events>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
@@ -576,8 +576,8 @@
               </AuxValues>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="Untitled-1.txt">
-                    <Property name="tabTitle" type="java.lang.String" value="Untitled-1.txt"/>
+                  <JTabbedPaneConstraints tabName="untitled-1.txt">
+                    <Property name="tabTitle" type="java.lang.String" value="untitled-1.txt"/>
                   </JTabbedPaneConstraints>
                 </Constraint>
               </Constraints>
@@ -586,6 +586,10 @@
               <SubComponents>
                 <Component class="javax.swing.JEditorPane" name="sampleEditorPane">
                   <Properties>
+                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                      <Font name="Adwaita Mono" size="14" style="0"/>
+                    </Property>
+                    <Property name="text" type="java.lang.String" value="&gt;&gt; Author     : %s&#xa;&gt;&gt; Filename   : %s&#xa;&gt;&gt; Date       : %s&#xa;&#xa;&#xa;&gt;&gt; this is a comment.&#xa;                                   &#xa;str password = &quot;0418&quot;;&#xa;int number = 18;            &#xa;&#xa;tell(&quot;hello world.&quot;);"/>
                     <Property name="toolTipText" type="java.lang.String" value=""/>
                     <Property name="name" type="java.lang.String" value="" noResource="true"/>
                   </Properties>

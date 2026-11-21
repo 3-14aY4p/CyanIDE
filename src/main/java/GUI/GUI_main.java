@@ -1,14 +1,22 @@
 package GUI;
 
+// custom packages
+import components.*;
+
 import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.time.*;
 import java.util.*;
+import javax.swing.*;
+import javax.swing.filechooser.*;
+import javax.swing.text.*;
 import javax.swing.tree.*;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-
 /**
  *
  * @author tianmei
@@ -31,18 +39,21 @@ MINIMUM REQUIREMENTS:
     + if-else statement
 
 FEATURE LIST:
-    [ ] get session/user's name
-    [ ] get OS & determine font
+    [x] get session/user's name
+    [x] get OS & determine font
     [ ] tab handling
-        [ ] new tab (on new and open file)
+        [x] new tab (on new and open file)
         [ ] close tab (double-click LMB)
+    [ ] text handling
+        [?] proper tabulation
+        [x] * mark file with changes
+        [?] undo & redo text
     [ ] file handling
-        [ ] create new file
+        [x] create new file
         [ ] open file
             [ ] filepath cache (if a file is already open, 
                 navigate to it instead of opening new tab)
         [ ] save file
-            [ ] *mark saved file with new changes
         [ ] save file as
     [ ] dir navigator
         [ ] open folder/directory
@@ -54,28 +65,27 @@ FEATURE LIST:
         [ ] print statement (strings, numbers,
             booleans, expressions, variable values)
         [ ] if-else statement
-*/
-
+ */
 public class GUI_main extends javax.swing.JFrame {
+
     // retrieve machine OS & current session
     private static final String OS = System.getProperty("os.name").toLowerCase();
     private static final String USERNAME = System.getProperty("user.name");
-    
+
     // for font defaults
     String fontFamily;      // determined by OS; i.e. Adwaita Mono for linux comp
     Font defaultFont;       // used by all JEditorPanes/JTextPanes for uniformity
-    
+
     // for file handling
     final String customFileExt = ".txt";
     final String commentPrefix = ">>";
-    
+
     // monitor currently open files
     ArrayList<String> filepathCache = new ArrayList<>();
-    
+
     // for dir navigator
     private final DefaultTreeModel treeModel;
-    
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GUI_main.class.getName());
 
     /**
@@ -83,10 +93,48 @@ public class GUI_main extends javax.swing.JFrame {
      */
     public GUI_main() {
         initComponents();
-        
+
         // initialize JTree component
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Open folder");
         treeModel = new DefaultTreeModel(root);
+
+        fileTree.setModel(treeModel);
+        fileTree.setShowsRootHandles(true);
+
+        // revert components into their clean state
+        tbpn_editor.removeAll();    // removes sample editor pane 
+        filepathCache.clear();      // this just ensures it clear
+
+        // initialize default font
+        if (OS.matches("^windows.*")) {
+            this.fontFamily = "Courier New";
+        } else {
+            // for linux; idk about mac users
+            this.fontFamily = "Adwaita Mono";
+        }
+        this.defaultFont = new Font(fontFamily, Font.PLAIN, 14);
+
+        tpn_output.setFont(defaultFont);
+        tpn_status.setFont(defaultFont);
+
+        createTab("welcome.txt");
+        JEditorPane welcomeTab = getSelectedEditorPane();
+        welcomeTab.setText(
+                welcomeTab.getText() + "\n"
+                + """
+                >> this is a comment.
+                          
+                >> this is how you declare variables               
+                str password = "0418";
+                int whole_num = 18;            
+                flt decimal_num = 18.4;            
+                bool isJavaEasy = true;            
+
+                >> this is how you print out text               
+                tell("hello world.");
+                  """
+        );
+        resetTabIcon();
     }
 
     /**
@@ -268,17 +316,19 @@ public class GUI_main extends javax.swing.JFrame {
 
         tbpn_editor.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                onTabDoubleClicked(evt);
+                onCloseTabClicked(evt);
             }
         });
 
         sampleParent.setName(""); // NOI18N
 
+        sampleEditorPane.setFont(new java.awt.Font("Adwaita Mono", 0, 14)); // NOI18N
+        sampleEditorPane.setText(">> Author     : %s\n>> Filename   : %s\n>> Date       : %s\n\n\n>> this is a comment.\n                                   \nstr password = \"0418\";\nint number = 18;            \n\ntell(\"hello world.\");");
         sampleEditorPane.setToolTipText("");
         sampleEditorPane.setName(""); // NOI18N
         sampleParent.setViewportView(sampleEditorPane);
 
-        tbpn_editor.addTab("Untitled-1.txt", sampleParent);
+        tbpn_editor.addTab("untitled-1.txt", sampleParent);
 
         pnl_main.add(tbpn_editor);
         tbpn_editor.setBounds(210, 10, 1050, 470);
@@ -405,16 +455,270 @@ public class GUI_main extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     // GETTERS
+    JEditorPane getEditorPane(JScrollPane tab) {
+        JViewport tabViewport = (JViewport) tab.getComponent(0);
+        return (JEditorPane) tabViewport.getView();
+    }
+
+    JEditorPane getSelectedEditorPane() {
+        JScrollPane selectedTab = (JScrollPane) tbpn_editor.getSelectedComponent();
+        return getEditorPane(selectedTab);
+    }
+
+    String getSelectedTabTitle() {
+        int tabIndex = tbpn_editor.getSelectedIndex();
+        return tbpn_editor.getTitleAt(tabIndex);
+    }
+
+    // TAB HANDLING
+    void createTab(String tabName) {
+        JScrollPane tab = new JScrollPane();
+        tab.setName(tabName);
+
+        MyUndoableEditorPane tabView = new MyUndoableEditorPane(btn_undo, btn_redo, mni_undo, mni_redo);
+        tabView.setFont(defaultFont);
+
+        MyTextLineNumber lineNumber = new MyTextLineNumber(tabView);
+        tab.setRowHeaderView(lineNumber);
+
+        Document doc = tabView.getDocument();
+        if (doc instanceof PlainDocument) {
+            doc.putProperty(PlainDocument.tabSizeAttribute, 4);
+        }
+
+        LocalDate today = LocalDate.now();
+        tabView.setText(String.format("""
+        >> Author     : %s
+        >> Filename   : %s
+        >> Date       : %s
+        """, USERNAME, tabName, today));
+
+        tabView.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent me) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent me) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent me) {
+            }
+
+            // currently, you can only undo if your cursor is on the pane
+            @Override
+            public void mouseEntered(MouseEvent me) {
+                tabView.setState(true);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent me) {
+                tabView.setState(false);
+            }
+        });
+
+        tbpn_editor.add(tab);
+        tbpn_editor.setSelectedComponent(tab);
+
+        tab.setViewportView(tabView);
+        doc.addDocumentListener(
+                new MyDocumentListener(tbpn_editor, tbpn_editor.getSelectedIndex())
+        );
+    }
+
+    void closeTab(JTabbedPane tabbedPane, int index) {
+        tabbedPane.removeTabAt(index);
+    }
     
+    // VISUAL FILE UPDATES INDICATOR
+    void updateTabTitle(String newTitle) {
+        int index = tbpn_editor.getSelectedIndex();
+        tbpn_editor.setTitleAt(index, newTitle);
+    }
+
+    void resetTabIcon() {
+        int index = tbpn_editor.getSelectedIndex();
+        tbpn_editor.setIconAt(index, null);
+    }
+
     // TREE HANDLING
-    
+    private void loadSelectedFolder(File folder) {
+        SwingWorker<DefaultMutableTreeNode, Void> worker
+                = new SwingWorker<DefaultMutableTreeNode, Void>() {
+
+            @Override
+            protected DefaultMutableTreeNode doInBackground() {
+                // Create root node using selected folder
+                DefaultMutableTreeNode root
+                        = new DefaultMutableTreeNode(folder);
+                // Load subfolders and files
+                loadDirectories(folder, root);
+
+                return root;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    // Get completed folder structure
+                    DefaultMutableTreeNode root = get();
+
+                    // Update JTree
+                    treeModel.setRoot(root);
+
+                    // Expand root node
+                    fileTree.expandRow(0);
+
+                    fileTree.revalidate();
+                    fileTree.repaint();
+
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(
+                            GUI_main.this,
+                            "Error loading folder: " + e.getMessage()
+                    );
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void loadDirectories(File directory, DefaultMutableTreeNode parentNode) {
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return;
+        }
+
+        for (File file : files) {
+            if (!file.canRead()) {
+                continue;
+            }
+            // Create child node
+            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(file.getName());
+            parentNode.add(childNode);
+
+            // Check if folder
+            if (file.isDirectory()) {
+                loadDirectories(file, childNode);
+            }
+        }
+    }
+
+    private void displayFiles() {
+        SwingWorker<DefaultMutableTreeNode, Void> worker
+                = new SwingWorker<DefaultMutableTreeNode, Void>() {
+
+            @Override
+            protected DefaultMutableTreeNode doInBackground() {
+                // Create root node
+                DefaultMutableTreeNode root
+                        = new DefaultMutableTreeNode("My Computer");
+
+                // Get computer drives
+                File[] drives = File.listRoots();
+                if (drives != null) {
+                    for (File drive : drives) {
+                        DefaultMutableTreeNode driveNode = new DefaultMutableTreeNode(drive);
+                        root.add(driveNode);
+
+                        // Load actual folders
+                        loadDirectories(drive, driveNode);
+                    }
+                }
+                return root;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    // Get completed folder structure
+                    DefaultMutableTreeNode root = get();
+
+                    // Update existing JTree
+                    treeModel.setRoot(root);
+
+                    fileTree.expandRow(0);
+
+                    fileTree.revalidate();
+                    fileTree.repaint();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(
+                            GUI_main.this,
+                            "Error loading folders: " + e.getMessage()
+                    );
+                }
+            }
+        };
+        
+        worker.execute();
+    }
+
     // FILE HANDLING
+    void openFile(File file) {
+        createTab(file.getName());
+        JEditorPane editorPane = getSelectedEditorPane();
+
+        try {
+            editorPane.setPage(file.toURI().toURL());
+            filepathCache.add(file.getPath());
+        } catch (IOException e) {
+
+        }
+    }
+
+    void saveFile(String filePath) {
+        JEditorPane editorPane = getSelectedEditorPane();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, false))) {
+            writer.write(editorPane.getText());
+            writer.close();
+        } catch (IOException e) {
+
+        }
+    }
+
+    void saveFileAs() {
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text"));
+        fileChooser.setSelectedFile(new File(getSelectedTabTitle())); // Default filename
+
+        fileChooser.setDialogTitle("Save file as");
+
+        int choice = fileChooser.showSaveDialog(null);
+        if (choice == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            saveFile(file.getPath());
+
+            filepathCache.add(file.getPath());
+            updateTabTitle(file.getName());
+            resetTabIcon();
+        }
+    }
     
-    
-    
+    // EVENT HANDLERS
+    void onNewPressed() {
+        String nameInput = JOptionPane.showInputDialog(null, "Please enter file name");
+
+        if (nameInput != null) {
+            if (nameInput.trim().isEmpty()) {
+                int tab_count = 0;
+                for (int i = 0; i < tbpn_editor.getComponentCount(); i++) {
+                    if (tbpn_editor.getTitleAt(i).matches("^untitled-.*")) {
+                        tab_count++;
+                    }
+                }
+                createTab("untitled-" + tab_count + customFileExt);
+            } else {
+                createTab(nameInput + customFileExt);
+            }
+        }
+    }
+
     // MENU: FILE
     private void mni_newActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_newActionPerformed
-        // TODO add your handling code here:
+        onNewPressed();
     }//GEN-LAST:event_mni_newActionPerformed
 
     private void mni_openFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_openFileActionPerformed
@@ -477,7 +781,7 @@ public class GUI_main extends javax.swing.JFrame {
 
     // TOOL: FILE
     private void btn_newActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_newActionPerformed
-        // TODO add your handling code here:
+        onNewPressed();
     }//GEN-LAST:event_btn_newActionPerformed
 
     private void btn_openActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_openActionPerformed
@@ -528,9 +832,39 @@ public class GUI_main extends javax.swing.JFrame {
     }//GEN-LAST:event_fileItemClicked
 
     // TAB INTERACTIONS
-    private void onTabDoubleClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onTabDoubleClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_onTabDoubleClicked
+    private void onCloseTabClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onCloseTabClicked
+        /*  ** SOME NOTES **
+            MOUSE BUTTON:
+                1 - left
+                2 - middle
+                3 - right
+         */
+
+        if (evt.getButton() == 1 && evt.getClickCount() == 2) {
+            int index = tbpn_editor.getSelectedIndex();
+
+            if (tbpn_editor.getComponents().length > 0) {
+                int choice = JOptionPane.showConfirmDialog(this,
+                        "Do you want to close this tab?\n(Does not save progress)",
+                        "Confirm close", JOptionPane.YES_NO_OPTION);
+
+                if (choice == JOptionPane.YES_OPTION) {
+                    closeTab(tbpn_editor, index);
+
+                    if (!filepathCache.isEmpty()) {
+                        String tabTitle = getSelectedTabTitle();
+                        for (String path : filepathCache) {
+                            if (path.matches(".*/" + tabTitle + "$")) {
+                                filepathCache.remove(path);
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }//GEN-LAST:event_onCloseTabClicked
 
     /**
      * @param args the command line arguments
