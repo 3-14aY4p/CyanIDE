@@ -1,4 +1,14 @@
 /*
+ * All my undo and redo events happen here, as
+ * I have already removed the action listeners
+ * of my buttons from GUI_main.
+ * 
+ * By putting them
+ *
+ */
+
+
+/*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
@@ -65,7 +75,7 @@ public class MyUndoableEditorPane extends JEditorPane implements UndoableEditLis
         }
     }
 
-    public void setState(boolean isActive) {
+    public void setUndoManagerFocusState(boolean isActive) {
         if (isActive) {
             UNDO_BTN.addActionListener(undoActionListener);
             REDO_BTN.addActionListener(redoActionListener);

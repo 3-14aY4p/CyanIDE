@@ -23,50 +23,53 @@ import javax.swing.tree.*;
  */
 
 /*
-MINIMUM REQUIREMENTS:
-- menu bar
-- tool bar
-- open existing text/code
-- save code with desired file ext.
-- multiple tabs feature
-- line numbering
-- code/syntax highlighter
-- code parsing for output
-    + print statement
-    + variable declaration
-    + variable assignment
-    + evaluate expressions
-    + if-else statement
+ MINIMUM REQUIREMENTS:
+ - menu bar
+ - tool bar
+ - open existing text/code
+ - save code with desired file ext.
+ - multiple tabs feature
+ - line numbering
+ - code/syntax highlighter
+ - code parsing for output
+   + print statement
+   + variable declaration
+   + variable assignment
+   + evaluate expressions
+   + if-else statement
 
 FEATURE LIST:
-    [x] get session/user's name
-    [x] get OS & determine font
-    [ ] tab handling
-        [x] new tab (on new and open file)
-        [ ] close tab (double-click LMB)
-    [ ] text handling
-        [?] proper tabulation
-        [x] * mark file with changes
-        [?] undo & redo text
-    [ ] file handling
-        [x] create new file
-        [ ] open file
-            [ ] filepath cache (if a file is already open, 
-                navigate to it instead of opening new tab)
-        [ ] save file
-        [ ] save file as
-    [ ] dir navigator
-        [ ] open folder/directory
-        [ ] display subfolders & files
-        [ ] open file on double-click
-    [ ] parser
-        [ ] variable declaration & assignment
-            (actual values & expressions)
-        [ ] print statement (strings, numbers,
-            booleans, expressions, variable values)
-        [ ] if-else statement
+   [x] get session/user's name
+   [x] get OS & determine font
+   [x] get previous session's user 
+       config (i.e. theme/LAF)
+   [x] tab handling
+       [x] new tab (on new and open file)
+       [x] close tab (double-click LMB)
+   [ ] text handling
+       [x] proper tabulation
+       [x] * mark file with changes
+       [x] undo & redo text
+       [ ] syntax highlighter
+   [x] file handling
+       [x] create new file
+       [x] open file
+           [x] filepath cache (if a file is already open, 
+               navigate to it instead of opening new tab)
+       [x] save file
+       [x] save file as
+   [x] dir navigator
+       [x] open folder/directory
+       [x] display subfolders & files
+       [x] open file on double-click
+   [ ] parser
+       [ ] variable declaration & assignment
+           (actual values & expressions)
+       [ ] print statement (strings, numbers,
+           booleans, expressions, variable values)
+       [ ] if-else statement
  */
-public class GUI_main extends javax.swing.JFrame {
+public final class GUI_main extends javax.swing.JFrame {
 
     // retrieve machine OS & current session
     private static final String OS = System.getProperty("os.name").toLowerCase();
@@ -197,28 +200,31 @@ public class GUI_main extends javax.swing.JFrame {
         mni_stop = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("oxIDE");
         setResizable(false);
-        getContentPane().setLayout(null);
+        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0);
+        flowLayout1.setAlignOnBaseline(true);
+        getContentPane().setLayout(flowLayout1);
 
         pnl_toolbar.setMinimumSize(new java.awt.Dimension(1280, 40));
         pnl_toolbar.setPreferredSize(new java.awt.Dimension(1280, 40));
         pnl_toolbar.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING, 6, 8));
 
-        btn_new.setIcon(new javax.swing.ImageIcon(getClass().getResource("/new.png"))); // NOI18N
+        btn_new.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/new.png"))); // NOI18N
         btn_new.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_new.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_new.setPreferredSize(new java.awt.Dimension(24, 24));
         btn_new.addActionListener(this::btn_newActionPerformed);
         pnl_toolbar.add(btn_new);
 
-        btn_open.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open.png"))); // NOI18N
+        btn_open.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/open.png"))); // NOI18N
         btn_open.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_open.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_open.setPreferredSize(new java.awt.Dimension(24, 24));
         btn_open.addActionListener(this::btn_openActionPerformed);
         pnl_toolbar.add(btn_open);
 
-        btn_save.setIcon(new javax.swing.ImageIcon(getClass().getResource("/save.png"))); // NOI18N
+        btn_save.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save.png"))); // NOI18N
         btn_save.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_save.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_save.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -226,35 +232,33 @@ public class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_save);
         pnl_toolbar.add(filler1);
 
-        btn_undo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/undo.png"))); // NOI18N
+        btn_undo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/undo.png"))); // NOI18N
         btn_undo.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_undo.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_undo.setPreferredSize(new java.awt.Dimension(24, 24));
-        btn_undo.addActionListener(this::btn_undoActionPerformed);
         pnl_toolbar.add(btn_undo);
 
-        btn_redo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/redo.png"))); // NOI18N
+        btn_redo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/redo.png"))); // NOI18N
         btn_redo.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_redo.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_redo.setPreferredSize(new java.awt.Dimension(24, 24));
-        btn_redo.addActionListener(this::btn_redoActionPerformed);
         pnl_toolbar.add(btn_redo);
 
-        btn_cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cut.png"))); // NOI18N
+        btn_cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cut.png"))); // NOI18N
         btn_cut.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_cut.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_cut.setPreferredSize(new java.awt.Dimension(24, 24));
         btn_cut.addActionListener(this::btn_cutActionPerformed);
         pnl_toolbar.add(btn_cut);
 
-        btn_copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/copy.png"))); // NOI18N
+        btn_copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/copy.png"))); // NOI18N
         btn_copy.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_copy.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_copy.setPreferredSize(new java.awt.Dimension(24, 24));
         btn_copy.addActionListener(this::btn_copyActionPerformed);
         pnl_toolbar.add(btn_copy);
 
-        btn_paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/paste.png"))); // NOI18N
+        btn_paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/paste.png"))); // NOI18N
         btn_paste.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_paste.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_paste.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -284,7 +288,6 @@ public class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_stop);
 
         getContentPane().add(pnl_toolbar);
-        pnl_toolbar.setBounds(0, 0, 1280, 40);
 
         pnl_main.setMinimumSize(new java.awt.Dimension(1280, 686));
         pnl_main.setPreferredSize(new java.awt.Dimension(1280, 686));
@@ -347,7 +350,6 @@ public class GUI_main extends javax.swing.JFrame {
         tbpn_info.setBounds(20, 490, 1240, 180);
 
         getContentPane().add(pnl_main);
-        pnl_main.setBounds(0, 40, 1280, 686);
 
         mn_file.setText("File");
 
@@ -393,33 +395,37 @@ public class GUI_main extends javax.swing.JFrame {
         mn_edit.setText("Edit");
 
         mni_undo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_undo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/undo.png"))); // NOI18N
         mni_undo.setText("Undo");
-        mni_undo.addActionListener(this::mni_undoActionPerformed);
         mn_edit.add(mni_undo);
 
         mni_redo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_redo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/redo.png"))); // NOI18N
         mni_redo.setText("Redo");
-        mni_redo.addActionListener(this::mni_redoActionPerformed);
         mn_edit.add(mni_redo);
         mn_edit.add(jSeparator4);
 
         mni_cut.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cut.png"))); // NOI18N
         mni_cut.setText("Cut");
         mni_cut.addActionListener(this::mni_cutActionPerformed);
         mn_edit.add(mni_cut);
 
         mni_copy.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/copy.png"))); // NOI18N
         mni_copy.setText("Copy");
         mni_copy.addActionListener(this::mni_copyActionPerformed);
         mn_edit.add(mni_copy);
 
         mni_paste.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/paste.png"))); // NOI18N
         mni_paste.setText("Paste");
         mni_paste.addActionListener(this::mni_pasteActionPerformed);
         mn_edit.add(mni_paste);
         mn_edit.add(jSeparator5);
 
         mni_options.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_options.setIcon(new javax.swing.ImageIcon(getClass().getResource("/options.png"))); // NOI18N
         mni_options.setText("Options");
         mni_options.addActionListener(this::mni_optionsActionPerformed);
         mn_edit.add(mni_options);
@@ -491,30 +497,20 @@ public class GUI_main extends javax.swing.JFrame {
         >> Author     : %s
         >> Filename   : %s
         >> Date       : %s
+                                      
         """, USERNAME, tabName, today));
 
-        tabView.addMouseListener(new MouseListener() {
+        // adding it here 'cause somehow adding it
+        // to my actual class didn't work?? bruh..
+        tabView.addFocusListener(new FocusListener() {
             @Override
-            public void mouseClicked(MouseEvent me) {
+            public void focusGained(FocusEvent fe) {
+                tabView.setUndoManagerFocusState(true);
             }
 
             @Override
-            public void mousePressed(MouseEvent me) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent me) {
-            }
-
-            // currently, you can only undo if your cursor is on the pane
-            @Override
-            public void mouseEntered(MouseEvent me) {
-                tabView.setState(true);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent me) {
-                tabView.setState(false);
+            public void focusLost(FocusEvent fe) {
+                tabView.setUndoManagerFocusState(false);
             }
         });
 
@@ -530,7 +526,7 @@ public class GUI_main extends javax.swing.JFrame {
     void closeTab(JTabbedPane tabbedPane, int index) {
         tabbedPane.removeTabAt(index);
     }
-    
+
     // VISUAL FILE UPDATES INDICATOR
     void updateTabTitle(String newTitle) {
         int index = tbpn_editor.getSelectedIndex();
@@ -650,7 +646,7 @@ public class GUI_main extends javax.swing.JFrame {
                 }
             }
         };
-        
+
         worker.execute();
     }
 
@@ -663,7 +659,7 @@ public class GUI_main extends javax.swing.JFrame {
             editorPane.setPage(file.toURI().toURL());
             filepathCache.add(file.getPath());
         } catch (IOException e) {
-
+            JOptionPane.showMessageDialog(null, "Failed to open file.");
         }
     }
 
@@ -674,7 +670,7 @@ public class GUI_main extends javax.swing.JFrame {
             writer.write(editorPane.getText());
             writer.close();
         } catch (IOException e) {
-
+            JOptionPane.showMessageDialog(null, "Failed to save file.");
         }
     }
 
@@ -696,9 +692,9 @@ public class GUI_main extends javax.swing.JFrame {
             resetTabIcon();
         }
     }
-    
+
     // EVENT HANDLERS
-    void onNewPressed() {
+    void onNewFilePressed() {
         String nameInput = JOptionPane.showInputDialog(null, "Please enter file name");
 
         if (nameInput != null) {
@@ -716,40 +712,112 @@ public class GUI_main extends javax.swing.JFrame {
         }
     }
 
+    void onOpenFilePressed() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text"));
+        fileChooser.setDialogTitle("Open file");
+
+        int choice = fileChooser.showOpenDialog(null);
+        if (choice == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            String fileName = file.getName();
+
+            for (Component c : tbpn_editor.getComponents()) {
+                if (c.getName().equals(fileName)) {
+                    tbpn_editor.setSelectedComponent(c);
+                    break;
+                } else {
+                    openFile(file);
+                    break;
+                }
+            }
+        }
+    }
+
+    void onOpenFolderPressed() {
+        JFileChooser fileChooser = new JFileChooser();
+
+        fileChooser.setFileSelectionMode(
+                JFileChooser.DIRECTORIES_ONLY
+        );
+        fileChooser.setCurrentDirectory(
+                new File(System.getProperty("user.home"))
+        );
+
+        fileChooser.setAcceptAllFileFilterUsed(false);
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFolder = fileChooser.getSelectedFile();
+            loadSelectedFolder(selectedFolder);
+        }
+    }
+
+    void onSavePressed() {
+        if (tbpn_editor.getComponents().length > 0) {
+            String tabTitle = getSelectedTabTitle();
+
+            if (filepathCache.isEmpty()) {
+                saveFileAs();
+            } else {
+                for (String path : filepathCache) {
+                    if (path.matches(".*/" + tabTitle + "$")) {
+                        saveFile(path);
+                        resetTabIcon();
+                        break;
+                    } else {
+                        saveFileAs();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    void onSaveAsPressed() {
+        if (tbpn_editor.getComponents().length > 0) {
+            saveFileAs();
+        }
+    }
+
+    void onOptionsPressed() {
+        new GUI_options().setVisible(true);
+    }
+
     // MENU: FILE
     private void mni_newActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_newActionPerformed
-        onNewPressed();
+        onNewFilePressed();
     }//GEN-LAST:event_mni_newActionPerformed
 
     private void mni_openFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_openFileActionPerformed
-        // TODO add your handling code here:
+        onOpenFilePressed();
     }//GEN-LAST:event_mni_openFileActionPerformed
 
     private void mni_openFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_openFolderActionPerformed
-        // TODO add your handling code here:
+        onOpenFolderPressed();
     }//GEN-LAST:event_mni_openFolderActionPerformed
 
     private void mni_saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_saveActionPerformed
-        // TODO add your handling code here:
+        onSavePressed();
     }//GEN-LAST:event_mni_saveActionPerformed
 
     private void mni_saveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_saveAsActionPerformed
-        // TODO add your handling code here:
+        onSaveAsPressed();
     }//GEN-LAST:event_mni_saveAsActionPerformed
 
     private void mni_exitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_exitActionPerformed
-        // TODO add your handling code here:
+        if (tbpn_editor.getComponents().length > 0) {
+            int choice = JOptionPane.showConfirmDialog(this,
+                    "Do you want to exit the application?\n(Does not save progress)",
+                    "Confirm close", JOptionPane.YES_NO_OPTION);
+
+            if (choice == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        }
     }//GEN-LAST:event_mni_exitActionPerformed
 
     // MENU: EDIT
-    private void mni_undoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_undoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_mni_undoActionPerformed
-
-    private void mni_redoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_redoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_mni_redoActionPerformed
-
     private void mni_cutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_cutActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_mni_cutActionPerformed
@@ -763,7 +831,7 @@ public class GUI_main extends javax.swing.JFrame {
     }//GEN-LAST:event_mni_pasteActionPerformed
 
     private void mni_optionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_optionsActionPerformed
-        // TODO add your handling code here:
+        onOptionsPressed();
     }//GEN-LAST:event_mni_optionsActionPerformed
 
     // MENU: RUN
@@ -781,26 +849,18 @@ public class GUI_main extends javax.swing.JFrame {
 
     // TOOL: FILE
     private void btn_newActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_newActionPerformed
-        onNewPressed();
+        onNewFilePressed();
     }//GEN-LAST:event_btn_newActionPerformed
 
     private void btn_openActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_openActionPerformed
-        // TODO add your handling code here:
+        onOpenFilePressed();
     }//GEN-LAST:event_btn_openActionPerformed
 
     private void btn_saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_saveActionPerformed
-        // TODO add your handling code here:
+        onSavePressed();
     }//GEN-LAST:event_btn_saveActionPerformed
 
     // TOOL: EDIT
-    private void btn_undoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_undoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btn_undoActionPerformed
-
-    private void btn_redoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_redoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btn_redoActionPerformed
-
     private void btn_cutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_cutActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btn_cutActionPerformed
@@ -828,7 +888,38 @@ public class GUI_main extends javax.swing.JFrame {
 
     // TREE INTERACTIONS
     private void fileItemClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileItemClicked
-        // TODO add your handling code here:
+        if (evt.getButton() == 1 && evt.getClickCount() == 2) {
+            try {
+                String rawPath = fileTree.getSelectionPath().toString().replaceAll(", ", "/");
+                String filePath = rawPath.replaceAll(".*\\[|\\]", "");
+
+                if (filePath.equals("Open folder")) {
+                    onOpenFolderPressed();
+                } else {
+                    File file = new File(filePath);
+
+                    if (file.isFile()) {
+                        String fileName = file.getName();
+
+                        if (tbpn_editor.getComponentCount() == 0) {
+                            openFile(file);
+                        } else {
+                            for (Component c : tbpn_editor.getComponents()) {
+                                if (c.getName().equals(fileName)) {
+                                    tbpn_editor.setSelectedComponent(c);
+                                    break;
+                                } else {
+                                    openFile(file);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Folder path not found.");
+            }
+        }
     }//GEN-LAST:event_fileItemClicked
 
     // TAB INTERACTIONS
@@ -856,7 +947,6 @@ public class GUI_main extends javax.swing.JFrame {
                         for (String path : filepathCache) {
                             if (path.matches(".*/" + tabTitle + "$")) {
                                 filepathCache.remove(path);
-
                                 break;
                             }
                         }
