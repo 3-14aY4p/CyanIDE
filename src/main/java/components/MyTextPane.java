@@ -1,27 +1,20 @@
 /*
- * All my undo and redo events happen here, as
- * I have already removed the action listeners
- * of my buttons from GUI_main.
- * 
- * By putting them
- *
- */
-
-
-/*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package components;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.text.*;
 import javax.swing.undo.*;
 
+/*
+ * All my undo and redo events happen here, as
+ * I have already removed the action listeners
+ * of my buttons from GUI_main.
+ */
 /**
  *
  * @author tianmei

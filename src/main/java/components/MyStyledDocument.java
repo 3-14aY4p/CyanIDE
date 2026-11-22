@@ -3,7 +3,7 @@
 /*
  * what the fuck is this mess i've made?
  * idk but i tried! still can't detect
- * the strings and attrSym though welp!
+ * the strings and comments though welp!
  */
 
  /*
@@ -52,7 +52,7 @@ public class MyStyledDocument extends DefaultStyledDocument {
             + bool + ")";
 
     String datatypes = "int|dec|str|bool";
-    String functions = "tell";
+    String functions = "echo";
     String conditions = "if|elif|else";
 
     private int findLastNonWordChar(String text, int index) {
@@ -98,14 +98,13 @@ public class MyStyledDocument extends DefaultStyledDocument {
                 } else if (text.substring(wordL, wordR).matches("(\\W)*(" + values + ")")) {
                     setCharacterAttributes(wordL, wordR - wordL, attrVal, false);
                 } else {
-                    if (text.charAt(wordL) == '>' || 
-                            text.charAt(wordL) == '<' ||
-                            text.charAt(wordL) == '=' || 
-                            text.charAt(wordL) == '+' || 
-                            text.charAt(wordL) == '-' || 
-                            text.charAt(wordL) == '*' || 
-                            text.charAt(wordL) == '/') 
-                    {
+                    if (text.charAt(wordL) == '>'
+                            || text.charAt(wordL) == '<'
+                            || text.charAt(wordL) == '='
+                            || text.charAt(wordL) == '+'
+                            || text.charAt(wordL) == '-'
+                            || text.charAt(wordL) == '*'
+                            || text.charAt(wordL) == '/') {
                         setCharacterAttributes(wordL, wordR - wordL, attrSym, false);
                     }
                 }

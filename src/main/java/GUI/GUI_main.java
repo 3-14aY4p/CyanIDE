@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-
 package GUI;
 
 // custom packages
@@ -42,35 +41,39 @@ import javax.swing.tree.*;
    + if-else statement
 
 FEATURE LIST:
-   [x] get session/user's name
-   [x] get OS & determine font
-   [x] get previous session's user 
-       config (i.e. theme/LAF)
-   [x] tab handling
-       [x] new tab (on new and open file)
-       [x] close tab (double-click LMB)
-   [?] text handling
-       [x] proper tabulation
-       [x] * mark file with changes
-       [x] undo & redo text
-       [?] syntax highlighter
-   [x] file handling
-       [x] create new file
-       [x] open file
-           [x] filepath cache (if a file is already open, 
-               navigate to it instead of opening new tab)
-       [x] save file
-       [x] save file as
-   [x] dir navigator
-       [x] open folder/directory
-       [x] display subfolders & files
-       [x] open file on double-click
-   [ ] parser
-       [ ] variable declaration & assignment
-           (actual values & expressions)
-       [ ] print statement (strings, numbers,
-           booleans, expressions, variable values)
-       [ ] if-else statement
+    [x] get session/user's name
+    [x] get OS & determine font
+    [x] get previous session's user 
+        config (i.e. theme/LAF)
+    [x] tab handling
+        [x] new tab (on new and open file)
+        [x] close tab (double-click LMB)
+    [?] text handling
+        [x] proper tabulation
+        [x] * mark file with changes
+        [x] undo & redo text
+        [?] syntax highlighter
+    [x] file handling
+        [x] create new file
+        [x] open file
+            [x] filepath cache (if a file is already open, 
+                navigate to it instead of opening new tab)
+        [x] save file
+        [x] save file as
+    [x] dir navigator
+        [x] open folder/directory
+        [x] display subfolders & files
+        [x] open file on double-click
+    [ ] parser
+        [ ] print statement (strings, numbers, bool,
+            arithmetic expressions, variable values)
+        [ ] variable declaration & assignment
+            (actual values & expressions)
+        [ ] if-else statement
+
+    [ ] run code
+        [ ] display output
+        [ ] display status
  */
 public final class GUI_main extends javax.swing.JFrame {
 
@@ -123,6 +126,7 @@ public final class GUI_main extends javax.swing.JFrame {
         tpn_output.setFont(defaultFont);
         tpn_status.setFont(defaultFont);
 
+        // creating a welcome tab with basic syntax as reference
         createTab("welcome" + customFileExt);
         JEditorPane welcomeTab = getSelectedEditorPane();
         welcomeTab.setText(
@@ -137,7 +141,7 @@ public final class GUI_main extends javax.swing.JFrame {
                 bool isJavaEasy = true;            
 
                 >> this is how you print out text               
-                tell("hello world.");
+                echo("hello world.");
                   
                 >> this is how you write conditions
                 if (whole_num > 0) {
@@ -335,9 +339,8 @@ public final class GUI_main extends javax.swing.JFrame {
             }
         });
 
-        sampleTextPane.setBackground(new java.awt.Color(242, 242, 242));
         sampleTextPane.setFont(new java.awt.Font("Adwaita Mono", 0, 14)); // NOI18N
-        sampleTextPane.setText(">> Author     : %s\n>> Filename   : %s\n>> Date       : %s   \n\n>> this is a comment.\n                                     \nstr password = \"0418\"; \nint number = 18;              \n\ntell(\"hello world.\");");
+        sampleTextPane.setText(">> Author     : %s\n>> Filename   : %s\n>> Date       : %s   ");
         sampleParent.setViewportView(sampleTextPane);
 
         tbpn_editor.addTab("untitled-0.txt", sampleParent);
@@ -847,6 +850,13 @@ public final class GUI_main extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_stopActionPerformed
 
     // TREE INTERACTIONS
+    /*  ** SOME NOTES ON MOUSE CLICKS **
+     *  MOUSE BUTTON:
+     *   1 - left
+     *   2 - middle
+     *   3 - right
+     */
+
     private void fileItemClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileItemClicked
         if (evt.getButton() == 1 && evt.getClickCount() == 2) {
             try {
@@ -884,31 +894,22 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // TAB INTERACTIONS
     private void onCloseTabClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onCloseTabClicked
-        /*  ** SOME NOTES **
-            MOUSE BUTTON:
-                1 - left
-                2 - middle
-                3 - right
-         */
-
-        if (evt.getButton() == 1 && evt.getClickCount() == 2) {
+        if (evt.getButton() == 1 && evt.getClickCount() == 2 && tbpn_editor.getComponents().length > 0) {
             int index = tbpn_editor.getSelectedIndex();
 
-            if (tbpn_editor.getComponents().length > 0) {
-                int choice = JOptionPane.showConfirmDialog(this,
-                        "Do you want to close this tab?\n(Does not save progress)",
-                        "Confirm close", JOptionPane.YES_NO_OPTION);
+            int choice = JOptionPane.showConfirmDialog(this,
+                    "Do you want to close this tab?\n(Does not save progress)",
+                    "Confirm close", JOptionPane.YES_NO_OPTION);
 
-                if (choice == JOptionPane.YES_OPTION) {
-                    closeTab(tbpn_editor, index);
+            if (choice == JOptionPane.YES_OPTION) {
+                closeTab(tbpn_editor, index);
 
-                    if (!filepathCache.isEmpty()) {
-                        String tabTitle = getSelectedTabTitle();
-                        for (String path : filepathCache) {
-                            if (path.matches(".*/" + tabTitle + "$")) {
-                                filepathCache.remove(path);
-                                break;
-                            }
+                if (!filepathCache.isEmpty()) {
+                    String tabTitle = getSelectedTabTitle();
+                    for (String path : filepathCache) {
+                        if (path.matches(".*/" + tabTitle + "$")) {
+                            filepathCache.remove(path);
+                            break;
                         }
                     }
                 }
