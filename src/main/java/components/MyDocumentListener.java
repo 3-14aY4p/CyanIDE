@@ -2,6 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package components;
 
 import javax.swing.*;
@@ -15,7 +16,7 @@ public class MyDocumentListener implements DocumentListener {
     private final JTabbedPane tabbedPane;
     private final int tabIndex;
 
-    private final ImageIcon icon = new ImageIcon("src/main/resources/asterisk.png");
+    private final ImageIcon icon = new ImageIcon("src/main/resources/icons/asterisk.png");
 
     public MyDocumentListener(JTabbedPane tabbedPane, int tabIndex) {
         this.tabbedPane = tabbedPane;

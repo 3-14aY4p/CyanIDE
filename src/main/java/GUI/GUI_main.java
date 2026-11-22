@@ -1,3 +1,8 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ */
+
 package GUI;
 
 // custom packages
@@ -7,16 +12,14 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.time.*;
+import java.time.format.*;
 import java.util.*;
+import java.util.concurrent.*;
 import javax.swing.*;
 import javax.swing.filechooser.*;
 import javax.swing.text.*;
 import javax.swing.tree.*;
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 /**
  *
  * @author tianmei
@@ -46,11 +49,11 @@ FEATURE LIST:
    [x] tab handling
        [x] new tab (on new and open file)
        [x] close tab (double-click LMB)
-   [ ] text handling
+   [?] text handling
        [x] proper tabulation
        [x] * mark file with changes
        [x] undo & redo text
-       [ ] syntax highlighter
+       [?] syntax highlighter
    [x] file handling
        [x] create new file
        [x] open file
@@ -80,7 +83,7 @@ public final class GUI_main extends javax.swing.JFrame {
     Font defaultFont;       // used by all JEditorPanes/JTextPanes for uniformity
 
     // for file handling
-    final String customFileExt = ".txt";
+    final String customFileExt = ".rtxt";
     final String commentPrefix = ">>";
 
     // monitor currently open files
@@ -115,12 +118,12 @@ public final class GUI_main extends javax.swing.JFrame {
             // for linux; idk about mac users
             this.fontFamily = "Adwaita Mono";
         }
-        this.defaultFont = new Font(fontFamily, Font.PLAIN, 14);
+        this.defaultFont = new Font(fontFamily, Font.PLAIN, 16);
 
         tpn_output.setFont(defaultFont);
         tpn_status.setFont(defaultFont);
 
-        createTab("welcome.txt");
+        createTab("welcome" + customFileExt);
         JEditorPane welcomeTab = getSelectedEditorPane();
         welcomeTab.setText(
                 welcomeTab.getText() + "\n"
@@ -128,13 +131,22 @@ public final class GUI_main extends javax.swing.JFrame {
                 >> this is a comment.
                           
                 >> this is how you declare variables               
-                str password = "0418";
+                str password = "password";
                 int whole_num = 18;            
-                flt decimal_num = 18.4;            
+                dec decimal_num = 18.4;            
                 bool isJavaEasy = true;            
 
                 >> this is how you print out text               
                 tell("hello world.");
+                  
+                >> this is how you write conditions
+                if (whole_num > 0) {
+                  
+                } elif (whole_num < 0) {
+                  
+                } else {
+                  
+                }
                   """
         );
         resetTabIcon();
@@ -168,7 +180,7 @@ public final class GUI_main extends javax.swing.JFrame {
         fileTree = new javax.swing.JTree();
         tbpn_editor = new javax.swing.JTabbedPane();
         sampleParent = new javax.swing.JScrollPane();
-        sampleEditorPane = new javax.swing.JEditorPane();
+        sampleTextPane = new javax.swing.JTextPane();
         tbpn_info = new javax.swing.JTabbedPane();
         outputParent = new javax.swing.JScrollPane();
         tpn_output = new javax.swing.JTextPane();
@@ -266,21 +278,21 @@ public final class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_paste);
         pnl_toolbar.add(filler2);
 
-        btn_run.setIcon(new javax.swing.ImageIcon(getClass().getResource("/run.png"))); // NOI18N
+        btn_run.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/run.png"))); // NOI18N
         btn_run.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_run.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_run.setPreferredSize(new java.awt.Dimension(24, 24));
         btn_run.addActionListener(this::btn_runActionPerformed);
         pnl_toolbar.add(btn_run);
 
-        btn_debug.setIcon(new javax.swing.ImageIcon(getClass().getResource("/debug.png"))); // NOI18N
+        btn_debug.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/debug.png"))); // NOI18N
         btn_debug.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_debug.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_debug.setPreferredSize(new java.awt.Dimension(24, 24));
         btn_debug.addActionListener(this::btn_debugActionPerformed);
         pnl_toolbar.add(btn_debug);
 
-        btn_stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/exit.png"))); // NOI18N
+        btn_stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/exit.png"))); // NOI18N
         btn_stop.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_stop.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_stop.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -323,15 +335,12 @@ public final class GUI_main extends javax.swing.JFrame {
             }
         });
 
-        sampleParent.setName(""); // NOI18N
+        sampleTextPane.setBackground(new java.awt.Color(242, 242, 242));
+        sampleTextPane.setFont(new java.awt.Font("Adwaita Mono", 0, 14)); // NOI18N
+        sampleTextPane.setText(">> Author     : %s\n>> Filename   : %s\n>> Date       : %s   \n\n>> this is a comment.\n                                     \nstr password = \"0418\"; \nint number = 18;              \n\ntell(\"hello world.\");");
+        sampleParent.setViewportView(sampleTextPane);
 
-        sampleEditorPane.setFont(new java.awt.Font("Adwaita Mono", 0, 14)); // NOI18N
-        sampleEditorPane.setText(">> Author     : %s\n>> Filename   : %s\n>> Date       : %s\n\n\n>> this is a comment.\n                                   \nstr password = \"0418\";\nint number = 18;            \n\ntell(\"hello world.\");");
-        sampleEditorPane.setToolTipText("");
-        sampleEditorPane.setName(""); // NOI18N
-        sampleParent.setViewportView(sampleEditorPane);
-
-        tbpn_editor.addTab("untitled-1.txt", sampleParent);
+        tbpn_editor.addTab("untitled-0.txt", sampleParent);
 
         pnl_main.add(tbpn_editor);
         tbpn_editor.setBounds(210, 10, 1050, 470);
@@ -354,14 +363,14 @@ public final class GUI_main extends javax.swing.JFrame {
         mn_file.setText("File");
 
         mni_new.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_new.setIcon(new javax.swing.ImageIcon(getClass().getResource("/new.png"))); // NOI18N
+        mni_new.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/new.png"))); // NOI18N
         mni_new.setText("New");
         mni_new.addActionListener(this::mni_newActionPerformed);
         mn_file.add(mni_new);
         mn_file.add(jSeparator1);
 
         mni_openFile.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_openFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open.png"))); // NOI18N
+        mni_openFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/open.png"))); // NOI18N
         mni_openFile.setText("Open file");
         mni_openFile.addActionListener(this::mni_openFileActionPerformed);
         mn_file.add(mni_openFile);
@@ -373,13 +382,13 @@ public final class GUI_main extends javax.swing.JFrame {
         mn_file.add(jSeparator2);
 
         mni_save.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_save.setIcon(new javax.swing.ImageIcon(getClass().getResource("/save.png"))); // NOI18N
+        mni_save.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save.png"))); // NOI18N
         mni_save.setText("Save");
         mni_save.addActionListener(this::mni_saveActionPerformed);
         mn_file.add(mni_save);
 
         mni_saveAs.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_saveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/save-as.png"))); // NOI18N
+        mni_saveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save-as.png"))); // NOI18N
         mni_saveAs.setText("Save as");
         mni_saveAs.addActionListener(this::mni_saveAsActionPerformed);
         mn_file.add(mni_saveAs);
@@ -395,37 +404,37 @@ public final class GUI_main extends javax.swing.JFrame {
         mn_edit.setText("Edit");
 
         mni_undo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_undo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/undo.png"))); // NOI18N
+        mni_undo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/undo.png"))); // NOI18N
         mni_undo.setText("Undo");
         mn_edit.add(mni_undo);
 
         mni_redo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_redo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/redo.png"))); // NOI18N
+        mni_redo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/redo.png"))); // NOI18N
         mni_redo.setText("Redo");
         mn_edit.add(mni_redo);
         mn_edit.add(jSeparator4);
 
         mni_cut.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cut.png"))); // NOI18N
+        mni_cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cut.png"))); // NOI18N
         mni_cut.setText("Cut");
         mni_cut.addActionListener(this::mni_cutActionPerformed);
         mn_edit.add(mni_cut);
 
         mni_copy.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/copy.png"))); // NOI18N
+        mni_copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/copy.png"))); // NOI18N
         mni_copy.setText("Copy");
         mni_copy.addActionListener(this::mni_copyActionPerformed);
         mn_edit.add(mni_copy);
 
         mni_paste.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/paste.png"))); // NOI18N
+        mni_paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/paste.png"))); // NOI18N
         mni_paste.setText("Paste");
         mni_paste.addActionListener(this::mni_pasteActionPerformed);
         mn_edit.add(mni_paste);
         mn_edit.add(jSeparator5);
 
         mni_options.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        mni_options.setIcon(new javax.swing.ImageIcon(getClass().getResource("/options.png"))); // NOI18N
+        mni_options.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/options.png"))); // NOI18N
         mni_options.setText("Options");
         mni_options.addActionListener(this::mni_optionsActionPerformed);
         mn_edit.add(mni_options);
@@ -435,19 +444,19 @@ public final class GUI_main extends javax.swing.JFrame {
         mn_run.setText("Run");
 
         mni_run.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
-        mni_run.setIcon(new javax.swing.ImageIcon(getClass().getResource("/run.png"))); // NOI18N
+        mni_run.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/run.png"))); // NOI18N
         mni_run.setText("Run");
         mni_run.addActionListener(this::mni_runActionPerformed);
         mn_run.add(mni_run);
 
         mni_debug.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F6, 0));
-        mni_debug.setIcon(new javax.swing.ImageIcon(getClass().getResource("/debug.png"))); // NOI18N
+        mni_debug.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/debug.png"))); // NOI18N
         mni_debug.setText("Debug");
         mni_debug.addActionListener(this::mni_debugActionPerformed);
         mn_run.add(mni_debug);
 
         mni_stop.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F7, 0));
-        mni_stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/exit.png"))); // NOI18N
+        mni_stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/exit.png"))); // NOI18N
         mni_stop.setText("Stop");
         mni_stop.addActionListener(this::mni_stopActionPerformed);
         mn_run.add(mni_stop);
@@ -461,14 +470,14 @@ public final class GUI_main extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     // GETTERS
-    JEditorPane getEditorPane(JScrollPane tab) {
+    JTextPane getTextPane(JScrollPane tab) {
         JViewport tabViewport = (JViewport) tab.getComponent(0);
-        return (JEditorPane) tabViewport.getView();
+        return (JTextPane) tabViewport.getView();
     }
 
     JEditorPane getSelectedEditorPane() {
         JScrollPane selectedTab = (JScrollPane) tbpn_editor.getSelectedComponent();
-        return getEditorPane(selectedTab);
+        return getTextPane(selectedTab);
     }
 
     String getSelectedTabTitle() {
@@ -481,7 +490,7 @@ public final class GUI_main extends javax.swing.JFrame {
         JScrollPane tab = new JScrollPane();
         tab.setName(tabName);
 
-        MyUndoableEditorPane tabView = new MyUndoableEditorPane(btn_undo, btn_redo, mni_undo, mni_redo);
+        MyTextPane tabView = new MyTextPane(btn_undo, btn_redo, mni_undo, mni_redo);
         tabView.setFont(defaultFont);
 
         MyTextLineNumber lineNumber = new MyTextLineNumber(tabView);
@@ -492,7 +501,7 @@ public final class GUI_main extends javax.swing.JFrame {
             doc.putProperty(PlainDocument.tabSizeAttribute, 4);
         }
 
-        LocalDate today = LocalDate.now();
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
         tabView.setText(String.format("""
         >> Author     : %s
         >> Filename   : %s
@@ -569,7 +578,7 @@ public final class GUI_main extends javax.swing.JFrame {
                     fileTree.revalidate();
                     fileTree.repaint();
 
-                } catch (Exception e) {
+                } catch (InterruptedException | ExecutionException e) {
                     JOptionPane.showMessageDialog(
                             GUI_main.this,
                             "Error loading folder: " + e.getMessage()
@@ -601,55 +610,6 @@ public final class GUI_main extends javax.swing.JFrame {
         }
     }
 
-    private void displayFiles() {
-        SwingWorker<DefaultMutableTreeNode, Void> worker
-                = new SwingWorker<DefaultMutableTreeNode, Void>() {
-
-            @Override
-            protected DefaultMutableTreeNode doInBackground() {
-                // Create root node
-                DefaultMutableTreeNode root
-                        = new DefaultMutableTreeNode("My Computer");
-
-                // Get computer drives
-                File[] drives = File.listRoots();
-                if (drives != null) {
-                    for (File drive : drives) {
-                        DefaultMutableTreeNode driveNode = new DefaultMutableTreeNode(drive);
-                        root.add(driveNode);
-
-                        // Load actual folders
-                        loadDirectories(drive, driveNode);
-                    }
-                }
-                return root;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    // Get completed folder structure
-                    DefaultMutableTreeNode root = get();
-
-                    // Update existing JTree
-                    treeModel.setRoot(root);
-
-                    fileTree.expandRow(0);
-
-                    fileTree.revalidate();
-                    fileTree.repaint();
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(
-                            GUI_main.this,
-                            "Error loading folders: " + e.getMessage()
-                    );
-                }
-            }
-        };
-
-        worker.execute();
-    }
-
     // FILE HANDLING
     void openFile(File file) {
         createTab(file.getName());
@@ -677,7 +637,7 @@ public final class GUI_main extends javax.swing.JFrame {
     void saveFileAs() {
         JFileChooser fileChooser = new JFileChooser();
 
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt));
         fileChooser.setSelectedFile(new File(getSelectedTabTitle())); // Default filename
 
         fileChooser.setDialogTitle("Save file as");
@@ -714,7 +674,7 @@ public final class GUI_main extends javax.swing.JFrame {
 
     void onOpenFilePressed() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt));
         fileChooser.setDialogTitle("Open file");
 
         int choice = fileChooser.showOpenDialog(null);
@@ -1023,8 +983,8 @@ public final class GUI_main extends javax.swing.JFrame {
     private javax.swing.JScrollPane outputParent;
     private javax.swing.JPanel pnl_main;
     private javax.swing.JPanel pnl_toolbar;
-    private javax.swing.JEditorPane sampleEditorPane;
     private javax.swing.JScrollPane sampleParent;
+    private javax.swing.JTextPane sampleTextPane;
     private javax.swing.JScrollPane statusParent;
     private javax.swing.JTabbedPane tbpn_editor;
     private javax.swing.JTabbedPane tbpn_info;

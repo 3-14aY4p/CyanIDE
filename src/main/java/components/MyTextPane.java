@@ -12,19 +12,21 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package components;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.text.*;
 import javax.swing.undo.*;
 
 /**
  *
  * @author tianmei
  */
-public class MyUndoableEditorPane extends JEditorPane implements UndoableEditListener {
+public class MyTextPane extends JTextPane implements UndoableEditListener {
 
     private UndoManager undoManager = new UndoManager();
 
@@ -36,19 +38,19 @@ public class MyUndoableEditorPane extends JEditorPane implements UndoableEditLis
     private final ActionListener undoActionListener = (ActionEvent ae) -> {
         try {
             undoManager.undo();
-        } catch (Exception e) {
+        } catch (CannotUndoException e) {
             Toolkit.getDefaultToolkit().beep();
         }
     };
     private final ActionListener redoActionListener = (ActionEvent ae) -> {
         try {
             undoManager.redo();
-        } catch (Exception e) {
+        } catch (CannotRedoException e) {
             Toolkit.getDefaultToolkit().beep();
         }
     };
 
-    public MyUndoableEditorPane(JButton btn_undo, JButton btn_redo,
+    public MyTextPane(JButton btn_undo, JButton btn_redo,
             JMenuItem mni_undo, JMenuItem mni_redo) {
 
         this.UNDO_BTN = btn_undo;
@@ -56,6 +58,7 @@ public class MyUndoableEditorPane extends JEditorPane implements UndoableEditLis
         this.UNDO_MNI = mni_undo;
         this.REDO_MNI = mni_redo;
 
+        setStyledDocument(new MyStyledDocument());
         getDocument().addUndoableEditListener(this);
     }
 
@@ -91,6 +94,8 @@ public class MyUndoableEditorPane extends JEditorPane implements UndoableEditLis
 
     @Override
     public void undoableEditHappened(UndoableEditEvent uee) {
-        undoManager.addEdit(uee.getEdit());
+        if (!uee.getEdit().getPresentationName().equals("style change")) {
+            undoManager.addEdit(uee.getEdit());
+        }
     }
 }

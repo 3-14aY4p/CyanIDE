@@ -1,13 +1,13 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ */
+
 package GUI;
 
 import com.formdev.flatlaf.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
 
 /**
  *

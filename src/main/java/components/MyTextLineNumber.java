@@ -1,4 +1,4 @@
-// Code by Rob Camick
+// Code from https://tips4java.wordpress.com/2009/05/23/text-component-line-number/
 
 package components;
 
