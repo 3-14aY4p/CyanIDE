@@ -36,14 +36,18 @@ public class MyCodeParser {
             + EXPR + ")";
 
     final static String GRAMMAR
-            = "\\s*(int|double|char|String|boolean)\\s+"
+            = "\\s*(int|dec|str|bool)\\s+"
             + "(" + IDENT + ")\\s*=\\s*"
             + "(" + VALUE + ")\\s*;\\s*";
 
+    public static Stack<HashMap<String, Object>> tokenizer() {
+        
+    }
+    
     public static HashMap<String, Object> parsePrintStatement(String line, Stack<HashMap<String, Object>> variableContainer) {
         // dictionary to be returned
         HashMap<String, Object> valueMap = new HashMap<>();
-        
+
         String outerRegex = "^\\s*tell\\((.*)\\)\\s*;$";
         String innerRegex = "^\\\"(.*)\\\"$";
 
@@ -92,18 +96,18 @@ public class MyCodeParser {
 
         Pattern pattern = Pattern.compile(GRAMMAR);
         Matcher matcher = pattern.matcher(line);
-        
+
         if (!matcher.matches()) {
             valueMap.put("ERROR", "INVALID SYNTAX: Declaration doesn't follow the grammar.");
             return valueMap;
         }
-        
+
         String dtype = matcher.group(1);
         String ident = matcher.group(2);
         String value = matcher.group(3);
-        
+
         boolean isValidType = false;
-        
+
         // determine if value matches with dtype;
         // this could probably be shorter but meh
         switch (dtype) {
@@ -111,47 +115,103 @@ public class MyCodeParser {
                 if (value.matches(INTEGER)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
-                    
+                    for (HashMap hm : variableContainer) {
+                        String varDtype = (String) hm.get("DTYPE");
+                        String varIdent = (String) hm.get("IDENT");
+                        String varValue = (String) hm.get("VALUE");
+
+                        if (varDtype.equals("int") && varIdent.equals(value)) {
+                            value = varValue;
+                            isValidType = true;
+                        } else {
+                            isValidType = false;
+                        }
+                    }
                 } else if (value.matches(EXPR)) {
-                    
+                    value = evaluateExpression(line, true);
+                    if (value.contains("INVALID")) {
+                        valueMap.put("ERROR", value);
+                        return valueMap;
+                    } else {
+                        isValidType = true;
+                    }
                 } else {
-                
+                    isValidType = false;
                 }
             }
-            
+
             case "dec" -> {
                 if (value.matches(INTEGER + "|" + DECIMAL)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
-                    
+                    for (HashMap hm : variableContainer) {
+                        String varDtype = (String) hm.get("DTYPE");
+                        String varIdent = (String) hm.get("IDENT");
+                        String varValue = (String) hm.get("VALUE");
+
+                        if (varDtype.equals("dec") && varIdent.equals(value)) {
+                            value = varValue;
+                            isValidType = true;
+                        } else {
+                            isValidType = false;
+                        }
+                    }
                 } else if (value.matches(EXPR)) {
-                    
+                    value = evaluateExpression(line, false);
+                    if (value.contains("INVALID")) {
+                        valueMap.put("ERROR", value);
+                        return valueMap;
+                    } else {
+                        isValidType = true;
+                    }
                 } else {
-                
+                    isValidType = false;
                 }
             }
-            
+
             case "str" -> {
                 if (value.matches(STRING)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
-                
+                    for (HashMap hm : variableContainer) {
+                        String varDtype = (String) hm.get("DTYPE");
+                        String varIdent = (String) hm.get("IDENT");
+                        String varValue = (String) hm.get("VALUE");
+
+                        if (varDtype.equals("str") && varIdent.equals(value)) {
+                            value = varValue;
+                            isValidType = true;
+                        } else {
+                            isValidType = false;
+                        }
+                    }
                 } else {
-                
+                    isValidType = false;
                 }
             }
-            
+
             case "bool" -> {
                 if (value.matches(BOOLEAN)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
-                
+                    for (HashMap hm : variableContainer) {
+                        String varDtype = (String) hm.get("DTYPE");
+                        String varIdent = (String) hm.get("IDENT");
+                        String varValue = (String) hm.get("VALUE");
+
+                        if (varDtype.equals("bool") && varIdent.equals(value)) {
+                            value = varValue;
+                            isValidType = true;
+                        } else {
+                            isValidType = false;
+                        }
+                    }
                 } else {
-                
+                    isValidType = false;
                 }
             }
         }
-        
+
         // set values for return
         if (isValidType) {
             valueMap.put("DTYPE", dtype);
@@ -163,13 +223,15 @@ public class MyCodeParser {
         return valueMap;
     }
 
-//    public static HashMap<String, Object> parseConditionalStatement(Stack<String> lines) {
-//
-//    }
+    public static HashMap<String, Object> parseIfElseStatement(Stack<String> lines) {
+        // dictionary to be returned
+        HashMap<String, Object> valueMap = new HashMap<>();
+        
+        return valueMap;
+    }
 //    public static boolean parseLogicalExpression(String expression) {
 //        
 //    }
-    
     // just returns the clean string of the evaluated expression
     public static String evaluateExpression(String line, boolean preferINT) {
         try {

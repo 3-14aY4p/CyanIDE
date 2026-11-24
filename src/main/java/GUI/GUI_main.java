@@ -52,7 +52,7 @@ FEATURE LIST:
         [x] proper tabulation
         [x] * mark file with changes
         [x] undo & redo text
-        [?] syntax highlighter
+        [?] syntax highlighter      // FIX ME
     [x] file handling
         [x] create new file
         [x] open file
@@ -65,9 +65,9 @@ FEATURE LIST:
         [x] display subfolders & files
         [x] open file on double-click
     [ ] parser
-        [ ] print statement (strings, numbers, bool,
+        [?] print statement (strings, numbers, bool,
             arithmetic expressions, variable values)
-        [ ] variable declaration & assignment
+        [?] variable declaration & assignment
             (actual values & expressions)
         [ ] if-else statement
 
@@ -127,8 +127,8 @@ public final class GUI_main extends javax.swing.JFrame {
         tpn_status.setFont(defaultFont);
 
         // creating a welcome tab with basic syntax as reference
-        createTab("welcome" + customFileExt);
-        JEditorPane welcomeTab = getSelectedEditorPane();
+        createTab("welcome" + customFileExt, true);
+        JEditorPane welcomeTab = getSelectedTextPane();
         welcomeTab.setText(
                 welcomeTab.getText() + "\n"
                 + """
@@ -214,6 +214,9 @@ public final class GUI_main extends javax.swing.JFrame {
         mni_run = new javax.swing.JMenuItem();
         mni_debug = new javax.swing.JMenuItem();
         mni_stop = new javax.swing.JMenuItem();
+        mn_view = new javax.swing.JMenu();
+        mni_zoomIn = new javax.swing.JMenuItem();
+        mni_zoomOut = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("oxIDE");
@@ -309,6 +312,7 @@ public final class GUI_main extends javax.swing.JFrame {
         pnl_main.setPreferredSize(new java.awt.Dimension(1280, 686));
         pnl_main.setLayout(null);
 
+        fileTree.setFont(new java.awt.Font("sansserif", 0, 14)); // NOI18N
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("RootFolder");
         javax.swing.tree.DefaultMutableTreeNode treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("SubFolder1");
         javax.swing.tree.DefaultMutableTreeNode treeNode3 = new javax.swing.tree.DefaultMutableTreeNode("fileSample.txt");
@@ -339,7 +343,7 @@ public final class GUI_main extends javax.swing.JFrame {
             }
         });
 
-        sampleTextPane.setFont(new java.awt.Font("Adwaita Mono", 0, 14)); // NOI18N
+        sampleTextPane.setFont(new java.awt.Font("Adwaita Mono", 0, 16)); // NOI18N
         sampleTextPane.setText(">> Author     : %s\n>> Filename   : %s\n>> Date       : %s   ");
         sampleParent.setViewportView(sampleTextPane);
 
@@ -466,6 +470,22 @@ public final class GUI_main extends javax.swing.JFrame {
 
         menuBar.add(mn_run);
 
+        mn_view.setText("View");
+
+        mni_zoomIn.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_zoomIn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/zoom-in.png"))); // NOI18N
+        mni_zoomIn.setText("Zoom in");
+        mni_zoomIn.addActionListener(this::mni_zoomInActionPerformed);
+        mn_view.add(mni_zoomIn);
+
+        mni_zoomOut.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_zoomOut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/zoom-out.png"))); // NOI18N
+        mni_zoomOut.setText("Zoom out");
+        mni_zoomOut.addActionListener(this::mni_zoomOutActionPerformed);
+        mn_view.add(mni_zoomOut);
+
+        menuBar.add(mn_view);
+
         setJMenuBar(menuBar);
 
         setSize(new java.awt.Dimension(1280, 751));
@@ -473,12 +493,12 @@ public final class GUI_main extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     // GETTERS
-    JTextPane getTextPane(JScrollPane tab) {
+    MyTextPane getTextPane(JScrollPane tab) {
         JViewport tabViewport = (JViewport) tab.getComponent(0);
-        return (JTextPane) tabViewport.getView();
+        return (MyTextPane) tabViewport.getView();
     }
 
-    JEditorPane getSelectedEditorPane() {
+    MyTextPane getSelectedTextPane() {
         JScrollPane selectedTab = (JScrollPane) tbpn_editor.getSelectedComponent();
         return getTextPane(selectedTab);
     }
@@ -489,7 +509,7 @@ public final class GUI_main extends javax.swing.JFrame {
     }
 
     // TAB HANDLING
-    void createTab(String tabName) {
+    void createTab(String tabName, boolean addHeader) {
         JScrollPane tab = new JScrollPane();
         tab.setName(tabName);
 
@@ -504,13 +524,15 @@ public final class GUI_main extends javax.swing.JFrame {
             doc.putProperty(PlainDocument.tabSizeAttribute, 4);
         }
 
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        tabView.setText(String.format("""
+        if (addHeader) {
+            String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            tabView.setText(String.format("""
         >> Author     : %s
         >> Filename   : %s
         >> Date       : %s
                                       
         """, USERNAME, tabName, today));
+        }
 
         // adding it here 'cause somehow adding it
         // to my actual class didn't work?? bruh..
@@ -527,12 +549,13 @@ public final class GUI_main extends javax.swing.JFrame {
         });
 
         tbpn_editor.add(tab);
-        tbpn_editor.setSelectedComponent(tab);
-
         tab.setViewportView(tabView);
+
+        tbpn_editor.setSelectedComponent(tab);
         doc.addDocumentListener(
                 new MyDocumentListener(tbpn_editor, tbpn_editor.getSelectedIndex())
         );
+
     }
 
     void closeTab(JTabbedPane tabbedPane, int index) {
@@ -613,13 +636,74 @@ public final class GUI_main extends javax.swing.JFrame {
         }
     }
 
+    private void displayFiles() {
+        SwingWorker<DefaultMutableTreeNode, Void> worker
+                = new SwingWorker<DefaultMutableTreeNode, Void>() {
+
+            @Override
+            protected DefaultMutableTreeNode doInBackground() {
+                // Create root node
+                DefaultMutableTreeNode root
+                        = new DefaultMutableTreeNode("My Computer");
+
+                // Get computer drives
+                File[] drives = File.listRoots();
+                if (drives != null) {
+                    for (File drive : drives) {
+                        DefaultMutableTreeNode driveNode = new DefaultMutableTreeNode(drive);
+                        root.add(driveNode);
+
+                        // Load actual folders
+                        loadDirectories(drive, driveNode);
+                    }
+                }
+                return root;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    // Get completed folder structure
+                    DefaultMutableTreeNode root = get();
+
+                    // Update existing JTree
+                    treeModel.setRoot(root);
+
+                    fileTree.expandRow(0);
+
+                    fileTree.revalidate();
+                    fileTree.repaint();
+                } catch (InterruptedException | ExecutionException e) {
+                    JOptionPane.showMessageDialog(
+                            GUI_main.this,
+                            "Error loading folders: " + e.getMessage()
+                    );
+                }
+            }
+        };
+        worker.execute();
+    }
+
     // FILE HANDLING
     void openFile(File file) {
-        createTab(file.getName());
-        JEditorPane editorPane = getSelectedEditorPane();
+        createTab(file.getName(), false);
+        MyTextPane textPane = getSelectedTextPane();
 
         try {
-            editorPane.setPage(file.toURI().toURL());
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            String line;
+
+            textPane.setText("");
+
+            while ((line = br.readLine()) != null) {
+                textPane.setText(
+                        textPane.getText().stripLeading() + "\n" + line
+                );
+            }
+
+            br.close();
+
             filepathCache.add(file.getPath());
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Failed to open file.");
@@ -627,7 +711,7 @@ public final class GUI_main extends javax.swing.JFrame {
     }
 
     void saveFile(String filePath) {
-        JEditorPane editorPane = getSelectedEditorPane();
+        JEditorPane editorPane = getSelectedTextPane();
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, false))) {
             writer.write(editorPane.getText());
@@ -640,7 +724,7 @@ public final class GUI_main extends javax.swing.JFrame {
     void saveFileAs() {
         JFileChooser fileChooser = new JFileChooser();
 
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt.replace(".", "")));
         fileChooser.setSelectedFile(new File(getSelectedTabTitle())); // Default filename
 
         fileChooser.setDialogTitle("Save file as");
@@ -655,6 +739,9 @@ public final class GUI_main extends javax.swing.JFrame {
             resetTabIcon();
         }
     }
+    
+    // PARSER FUNCTIONS
+    
 
     // EVENT HANDLERS
     void onNewFilePressed() {
@@ -668,16 +755,16 @@ public final class GUI_main extends javax.swing.JFrame {
                         tab_count++;
                     }
                 }
-                createTab("untitled-" + tab_count + customFileExt);
+                createTab("untitled-" + tab_count + customFileExt, false);
             } else {
-                createTab(nameInput + customFileExt);
+                createTab(nameInput + customFileExt, false);
             }
         }
     }
 
     void onOpenFilePressed() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt.replace(".", "")));
         fileChooser.setDialogTitle("Open file");
 
         int choice = fileChooser.showOpenDialog(null);
@@ -745,6 +832,11 @@ public final class GUI_main extends javax.swing.JFrame {
 
     void onOptionsPressed() {
         new GUI_options().setVisible(true);
+    }
+    
+    // TODO: RUNNING THE PROGRAM
+    void onRunPressed() {
+        
     }
 
     // MENU: FILE
@@ -917,6 +1009,14 @@ public final class GUI_main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_onCloseTabClicked
 
+    private void mni_zoomInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_zoomInActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_mni_zoomInActionPerformed
+
+    private void mni_zoomOutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_zoomOutActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_mni_zoomOutActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -966,6 +1066,7 @@ public final class GUI_main extends javax.swing.JFrame {
     private javax.swing.JMenu mn_edit;
     private javax.swing.JMenu mn_file;
     private javax.swing.JMenu mn_run;
+    private javax.swing.JMenu mn_view;
     private javax.swing.JMenuItem mni_copy;
     private javax.swing.JMenuItem mni_cut;
     private javax.swing.JMenuItem mni_debug;
@@ -981,6 +1082,8 @@ public final class GUI_main extends javax.swing.JFrame {
     private javax.swing.JMenuItem mni_saveAs;
     private javax.swing.JMenuItem mni_stop;
     private javax.swing.JMenuItem mni_undo;
+    private javax.swing.JMenuItem mni_zoomIn;
+    private javax.swing.JMenuItem mni_zoomOut;
     private javax.swing.JScrollPane outputParent;
     private javax.swing.JPanel pnl_main;
     private javax.swing.JPanel pnl_toolbar;

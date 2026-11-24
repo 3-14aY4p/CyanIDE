@@ -12,8 +12,7 @@
  */
 package components;
 
-import java.awt.Color;
-import java.io.*;
+import java.awt.*;
 import javax.swing.text.*;
 
 /**
@@ -21,9 +20,6 @@ import javax.swing.text.*;
  * @author tianmei
  */
 public class MyStyledDocument extends DefaultStyledDocument {
-
-    File configFile = new File("src/main/resources/config.properties");
-    String selectedLafTheme = "";
 
     final StyleContext cont = StyleContext.getDefaultStyleContext();
 
@@ -36,8 +32,6 @@ public class MyStyledDocument extends DefaultStyledDocument {
     final AttributeSet attrCon = cont.addAttribute(attrBoldText, StyleConstants.Foreground, new Color(230, 48, 138));
     final AttributeSet attrVal = cont.addAttribute(attrItlcText, StyleConstants.Foreground, new Color(0, 191, 125));
     final AttributeSet attrSym = cont.addAttribute(attrBoldText, StyleConstants.Foreground, new Color(221, 51, 51));
-
-    AttributeSet attrDef = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, new Color(0, 180, 197));
 
     // BASIS FOR THE REGEX
     String decimal = "[0-9]+\\.[0-9]+";
@@ -53,8 +47,8 @@ public class MyStyledDocument extends DefaultStyledDocument {
 
     String datatypes = "int|dec|str|bool";
     String functions = "echo";
-    String conditions = "if|elif|else";
-
+    String conditions = "if|elif|else";  
+    
     private int findLastNonWordChar(String text, int index) {
         while (--index >= 0) {
             if (String.valueOf(text.charAt(index)).matches("\\W")) {
