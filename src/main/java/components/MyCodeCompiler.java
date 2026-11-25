@@ -23,11 +23,13 @@ public class MyCodeCompiler {
 
     final static String OPRT = "(\\+|-|\\*|/)";
     final static String EXPR = "("
-            + "(" + INTEGER + "|" + DECIMAL + ")"
+            + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
             + "\\s*" + OPRT + "\\s*"
-            + "(" + INTEGER + "|" + DECIMAL + ")"
+            + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
             + ")";
 
+    final static String NULL = "null";
+    
     final static String DTYPE = "(int|dec|str|bool)";
 
     final static String VALUE = "(?:"
@@ -35,11 +37,12 @@ public class MyCodeCompiler {
             + INTEGER + "|"
             + STRING + "|"
             + BOOLEAN + "|"
-            + EXPR + ")";
+            + EXPR + "|"
+            + NULL + ")";
 
     final static String GRAMMAR
             = "\\s*" + DTYPE + "\\s+"
-            + "(" + IDENT + ")\\s*=\\s*"
+            + "(" + IDENT + ")\\s*<-\\s*"
             + "(" + VALUE + ")\\s*;\\s*";
 
     final static String COMMENTPREFIX = ">>";
@@ -59,7 +62,7 @@ public class MyCodeCompiler {
             int lnum = lines.indexOf(l) + 1;
             l = l.strip();
             HashMap<String, Object> hashMap = new HashMap<>();
-            
+
             if (!(l.isBlank() || l.startsWith(COMMENTPREFIX))) {
                 if (l.matches("^" + DTYPE + ".*")) {
                     hashMap = parseVariableAssignment(lnum, l, vars);
@@ -111,24 +114,22 @@ public class MyCodeCompiler {
         }
         String extr = matcher.group(1);
         String stmt = "";
-        
+
         if (extr.contains("\"")) {
             if (extr.matches(innerRegex)) {
-            // removes "" and extracts STRING inside
+                // removes "" and extracts STRING inside
                 stmt = extr.replaceAll("\\\"", "");
             } else {
                 valueMap.put("ERROR", "INVALID SYNTAX: Missing [\"] at the end of string.");
                 return valueMap;
             }
-        } else if (extr.matches(INTEGER + "|" + DECIMAL + "|" + BOOLEAN)) {
+        } else if (extr.matches(NULL + "|" + INTEGER + "|" + DECIMAL + "|" + BOOLEAN)) {
             stmt = extr;
         } else if (extr.matches(IDENT)) {
             for (HashMap hm : variableContainer) {
                 String varIdent = (String) hm.get("IDENT");
                 String varValue = (String) hm.get("VALUE");
                 int varLnNum = (int) hm.get("LNUM");
-                
-                System.out.println(varIdent.equals(extr) && lnum > varLnNum);
 
                 if (varIdent.equals(extr) && lnum > varLnNum) {
                     stmt = varValue;
@@ -173,7 +174,7 @@ public class MyCodeCompiler {
         // this could probably be shorter but meh
         switch (dtype) {
             case "int" -> {
-                if (value.matches(INTEGER)) {
+                if (value.matches(INTEGER) || value.matches(NULL)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
                     for (HashMap hm : variableContainer) {
@@ -182,7 +183,9 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("int") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
+                            value =  varValue;
+                        } else if (varDtype.equals("int") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -203,7 +206,7 @@ public class MyCodeCompiler {
             }
 
             case "dec" -> {
-                if (value.matches(INTEGER + "|" + DECIMAL)) {
+                if (value.matches(INTEGER + "|" + DECIMAL) || value.matches(NULL)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
                     for (HashMap hm : variableContainer) {
@@ -212,7 +215,9 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("dec") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
+                            value =  varValue;
+                        } else if (varDtype.equals("dec") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -233,7 +238,7 @@ public class MyCodeCompiler {
             }
 
             case "str" -> {
-                if (value.matches(STRING)) {
+                if (value.matches(STRING) || value.matches(NULL)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
                     for (HashMap hm : variableContainer) {
@@ -242,7 +247,9 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("str") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
+                            value =  varValue;
+                        } else if (varDtype.equals("str") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -255,7 +262,7 @@ public class MyCodeCompiler {
             }
 
             case "bool" -> {
-                if (value.matches(BOOLEAN)) {
+                if (value.matches(BOOLEAN) || value.matches(NULL)) {
                     isValidType = true;
                 } else if (value.matches(IDENT)) {
                     for (HashMap hm : variableContainer) {
@@ -264,7 +271,9 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("bool") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
+                            value =  varValue;
+                        } else if (varDtype.equals("bool") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -298,7 +307,6 @@ public class MyCodeCompiler {
 //    public static boolean parseLogicalExpression(String expression) {
 //        
 //    }
-    
     // SOURCE: https://www.geeksforgeeks.org/java/how-to-evaluate-math-expression-given-in-STRING-form-in-java/
     // Function to evaluate a mathematical expression given in STRING form
     public static double parseArithmeticExpression(String expression) {

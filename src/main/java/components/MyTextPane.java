@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.text.*;
 import javax.swing.undo.*;
 
 /*
@@ -21,12 +22,57 @@ import javax.swing.undo.*;
  */
 public class MyTextPane extends JTextPane implements UndoableEditListener {
 
-    private UndoManager undoManager = new UndoManager();
+    private UndoManager undoManager = new MyUndoManager();
 
-    private final JButton UNDO_BTN;
-    private final JButton REDO_BTN;
+    // undo/redo button references
     private final JMenuItem UNDO_MNI;
     private final JMenuItem REDO_MNI;
+    private final JButton UNDO_BTN;
+    private final JButton REDO_BTN;
+
+    // syntax reference/regex
+    final static String SPCCH = "\\+|-|\\*|/|=|>|<|==|>=|<=|!=|<-";
+    final static String SPCVL = "null|true|false";
+    final static String DTYPE = "int|dec|str|bool";
+    final static String CONDS = "if|elif|else";
+    final static String FUNCS = "echo";
+
+    public MyTextPane(JButton btn_undo, JButton btn_redo,
+            JMenuItem mni_undo, JMenuItem mni_redo) {
+
+        this.UNDO_BTN = btn_undo;
+        this.REDO_BTN = btn_redo;
+        this.UNDO_MNI = mni_undo;
+        this.REDO_MNI = mni_redo;
+
+        MyStyledDocument doc = new MyStyledDocument();
+        Style col = doc.getStyle(StyleContext.DEFAULT_STYLE);
+
+        Color prp = new Color(147, 112, 219);
+        Color pnk = new Color(241, 91, 181);
+        Color sea = new Color(69, 123, 157);
+        Color ocn = new Color(29, 53, 87);
+
+        // set syntax to be highlighted
+        for (String s : SPCCH.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), prp);
+        }
+        for (String s : SPCVL.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), ocn);
+        }
+        for (String s : DTYPE.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), pnk);
+        }
+        for (String s : CONDS.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), sea);
+        }
+        for (String s : FUNCS.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), sea);
+        }
+
+        doc.addUndoableEditListener(this);
+        setStyledDocument(doc);
+    }
 
     private final ActionListener undoActionListener = (ActionEvent ae) -> {
         try {
@@ -42,18 +88,6 @@ public class MyTextPane extends JTextPane implements UndoableEditListener {
             Toolkit.getDefaultToolkit().beep();
         }
     };
-
-    public MyTextPane(JButton btn_undo, JButton btn_redo,
-            JMenuItem mni_undo, JMenuItem mni_redo) {
-
-        this.UNDO_BTN = btn_undo;
-        this.REDO_BTN = btn_redo;
-        this.UNDO_MNI = mni_undo;
-        this.REDO_MNI = mni_redo;
-
-        setStyledDocument(new MyStyledDocument());
-        getDocument().addUndoableEditListener(this);
-    }
 
     public void undo() {
         try {
@@ -71,24 +105,30 @@ public class MyTextPane extends JTextPane implements UndoableEditListener {
         }
     }
 
+    public void addListeners() {
+        UNDO_MNI.addActionListener(undoActionListener);
+        REDO_MNI.addActionListener(redoActionListener);
+        UNDO_BTN.addActionListener(undoActionListener);
+        REDO_BTN.addActionListener(redoActionListener);
+    }
+
+    private void remListeners() {
+        UNDO_MNI.removeActionListener(undoActionListener);
+        REDO_MNI.removeActionListener(redoActionListener);
+        UNDO_BTN.removeActionListener(undoActionListener);
+        REDO_BTN.removeActionListener(redoActionListener);
+    }
+
     public void setUndoManagerFocusState(boolean isActive) {
         if (isActive) {
-            UNDO_BTN.addActionListener(undoActionListener);
-            REDO_BTN.addActionListener(redoActionListener);
-            UNDO_MNI.addActionListener(undoActionListener);
-            REDO_MNI.addActionListener(redoActionListener);
+            addListeners();
         } else {
-            UNDO_BTN.removeActionListener(undoActionListener);
-            REDO_BTN.removeActionListener(redoActionListener);
-            UNDO_MNI.removeActionListener(undoActionListener);
-            REDO_MNI.removeActionListener(redoActionListener);
+            remListeners();
         }
     }
 
     @Override
     public void undoableEditHappened(UndoableEditEvent uee) {
-        if (!uee.getEdit().getPresentationName().equals("style change")) {
-            undoManager.addEdit(uee.getEdit());
-        }
+        undoManager.undoableEditHappened(uee);
     }
 }

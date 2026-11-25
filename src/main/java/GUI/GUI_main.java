@@ -15,8 +15,8 @@ import java.time.format.*;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.filechooser.*;
-import javax.swing.text.*;
 import javax.swing.tree.*;
 
 /**
@@ -48,11 +48,11 @@ FEATURE LIST:
     [x] tab handling
         [x] new tab (on new and open file)
         [x] close tab (double-click LMB)
-    [?] text handling
+    [x] text handling
         [x] proper tabulation
         [x] * mark file with changes
         [x] undo & redo text
-        [?] syntax highlighter      // FIX ME
+        [x] syntax highlighter
     [x] file handling
         [x] create new file
         [x] open file
@@ -71,9 +71,13 @@ FEATURE LIST:
             (actual values & expressions)
         [ ] if-else statement
 
-    [ ] run code
-        [ ] display output
-        [ ] display status
+    [?] run code
+        [?] display output
+        [x] display status
+
+    NOTES:
+    -- can't print variables yet (no symbol table)
+    -- no parsing for logical expressions
  */
 public final class GUI_main extends javax.swing.JFrame {
 
@@ -131,23 +135,16 @@ public final class GUI_main extends javax.swing.JFrame {
         welcomeTab.setText(
                 welcomeTab.getText() + "\n"
                 + """  
-                >> this is how you declare variables               
-                >> str password = "password";
-                >> int whole_num = 18;            
-                >> dec decimal_num = 18.4;            
-                >> bool isJavaEasy = true;            
-
-                >> this is how you print out text               
-                >> echo("hello world.");
+                >> this is a comment
                   
-                >> this is how you write conditions
-                >> if (whole_num > 0) {
-                >>   
-                >> } elif (whole_num < 0) {
-                >>   
-                >> } else {
-                >>   
-                >> }
+                >> this language uses only 4 datatypes:
+                >> int  : integer
+                >> dec  : decimal
+                >> str  : string
+                >> bool : boolean
+                  
+                >> this is how you declare a variable
+                int x <- 5;
                   """
         );
         resetTabIcon();
@@ -521,11 +518,6 @@ public final class GUI_main extends javax.swing.JFrame {
         MyTextLineNumber lineNumber = new MyTextLineNumber(tabView);
         tab.setRowHeaderView(lineNumber);
 
-        Document doc = tabView.getDocument();
-        if (doc instanceof PlainDocument) {
-            doc.putProperty(PlainDocument.tabSizeAttribute, 4);
-        }
-
         if (addHeader) {
             String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             tabView.setText(String.format("""
@@ -554,10 +546,28 @@ public final class GUI_main extends javax.swing.JFrame {
         tab.setViewportView(tabView);
 
         tbpn_editor.setSelectedComponent(tab);
-        doc.addDocumentListener(
-                new MyDocumentListener(tbpn_editor, tbpn_editor.getSelectedIndex())
-        );
+        tabView.getDocument().addDocumentListener(new DocumentListener() {
+            ImageIcon icon = new ImageIcon("src/main/resources/icons/asterisk.png");
+            
+            @Override
+            public void insertUpdate(DocumentEvent de) {
+                updateIcon();
+            }
 
+            @Override
+            public void removeUpdate(DocumentEvent de) {
+                updateIcon();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent de) {
+                updateIcon();
+            }
+            
+            public void updateIcon() {
+                tbpn_editor.setIconAt(tbpn_editor.getSelectedIndex(), icon);
+            }
+        });
     }
 
     void closeTab(JTabbedPane tabbedPane, int index) {
@@ -844,10 +854,6 @@ public final class GUI_main extends javax.swing.JFrame {
         Stack<HashMap<String, Object>> errs = outputHM.get("ERRS");
         Stack<HashMap<String, Object>> prnt = outputHM.get("PRNT");
 
-        for (HashMap hm : prnt) {
-                System.out.println(hm);
-            }
-        
         if (errs.isEmpty()) {
             tpn_output.setText("""
                 --- no errors found ---
@@ -855,8 +861,8 @@ public final class GUI_main extends javax.swing.JFrame {
                     BUILD SUCCESS
                  -------------------------------------------
                 """);
-            tpn_status.setText("[STATUS]: ERRORS found in program.\n");
-  
+            tpn_status.setText("[STATUS]: NO ERRORS found in program.\n");
+
             for (HashMap hm : prnt) {
                 tpn_output.setText(tpn_output.getText() + "\n" + hm.get("TEXT"));
             }
