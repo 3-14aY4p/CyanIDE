@@ -21,23 +21,31 @@ public class MyCodeCompiler {
     final static String STRING = "\"[^\"\\r\\n]*\"";
     final static String BOOLEAN = "true|false";
 
-    final static String OPRT = "(\\+|-|\\*|/)";
-    final static String EXPR = "("
+    final static String AOPRT = "(\\+|-|\\*|/)";
+    final static String AEXPR = "("
             + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
-            + "\\s*" + OPRT + "\\s*"
+            + "(" + "\\s*" + AOPRT + "\\s*"
+            + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")" + ")+"
+            + ")";
+
+    final static String LOPRT = "(\\+|-|\\*|/)";
+    final static String LEXPR = "("
             + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
+            + "(" + "\\s*" + AOPRT + "\\s*"
+            + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")" + ")+"
             + ")";
 
     final static String NULL = "null";
-    
+
     final static String DTYPE = "(int|dec|str|bool)";
 
     final static String VALUE = "(?:"
+            + IDENT + "|"
             + DECIMAL + "|"
             + INTEGER + "|"
             + STRING + "|"
             + BOOLEAN + "|"
-            + EXPR + "|"
+            + AEXPR + "|"
             + NULL + ")";
 
     final static String GRAMMAR
@@ -126,26 +134,41 @@ public class MyCodeCompiler {
         } else if (extr.matches(NULL + "|" + INTEGER + "|" + DECIMAL + "|" + BOOLEAN)) {
             stmt = extr;
         } else if (extr.matches(IDENT)) {
+            HashMap<String, String> variableTable = new HashMap<>();
+            HashMap<String, Integer> variableIndex = new HashMap<>();
             for (HashMap hm : variableContainer) {
                 String varIdent = (String) hm.get("IDENT");
                 String varValue = (String) hm.get("VALUE");
                 int varLnNum = (int) hm.get("LNUM");
 
-                if (varIdent.equals(extr) && lnum > varLnNum) {
-                    stmt = varValue;
-                } else {
-                    valueMap.put("ERROR", "INVALID SYNTAX: Variable '" + extr + "' not found.");
-                    return valueMap;
-                }
+                variableTable.put(varIdent, varValue);
+                variableIndex.put(varIdent, varLnNum);
             }
-        } else if (extr.matches(EXPR)) {
-            String value = Double.toString(parseArithmeticExpression(line));
+            if (variableTable.containsKey(extr)) {
+                if (variableIndex.get(extr) < lnum) {
+                    stmt = variableTable.get(extr);
+                }
+            } else {
+                valueMap.put("ERROR", "INVALID SYNTAX: Variable '" + extr + "' not found.");
+                return valueMap;
+            }
+        } else if (extr.matches(AEXPR)) {
+            String value = "";
+            double res = evaluateArithmeticExpression(extr, variableContainer);
+            if (res % 1 != 0) {
+                value = Double.toString(res);
+            } else {
+                value = Integer.toString((int) res);
+            }
+
             if (value.contains("INVALID")) {
                 valueMap.put("ERROR", value);
                 return valueMap;
             } else {
                 stmt = value;
             }
+        } else if (extr.matches(LEXPR)) {
+            // TODO
         }
 
         valueMap.put("TEXT", stmt);
@@ -170,6 +193,13 @@ public class MyCodeCompiler {
 
         boolean isValidType = false;
 
+        for (HashMap hm : variableContainer) {
+            String varIdent = (String) hm.get("IDENT");
+            if (ident.equals(varIdent)) {
+                valueMap.put("ERROR", "INVALID ASSIGNMENT: Variable '" + ident + "' already exists.");
+            }
+        }
+
         // determine if value matches with dtype;
         // this could probably be shorter but meh
         switch (dtype) {
@@ -183,17 +213,15 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
-                            value =  varValue;
-                        } else if (varDtype.equals("int") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (varDtype.equals("int") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
                             isValidType = false;
                         }
                     }
-                } else if (value.matches(EXPR)) {
-                    value = Integer.toString((int) parseArithmeticExpression(line));
+                } else if (value.matches(AEXPR)) {
+                    value = Integer.toString((int) evaluateArithmeticExpression(line, variableContainer));
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
                         return valueMap;
@@ -215,17 +243,15 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
-                            value =  varValue;
-                        } else if (varDtype.equals("dec") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (varDtype.equals("dec") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
                             isValidType = false;
                         }
                     }
-                } else if (value.matches(EXPR)) {
-                    value = Double.toString(parseArithmeticExpression(line));
+                } else if (value.matches(AEXPR)) {
+                    value = Double.toString(evaluateArithmeticExpression(line, variableContainer));
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
                         return valueMap;
@@ -247,9 +273,7 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
-                            value =  varValue;
-                        } else if (varDtype.equals("str") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (varDtype.equals("str") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -271,14 +295,21 @@ public class MyCodeCompiler {
                         String varValue = (String) hm.get("VALUE");
                         int varLnNum = (int) hm.get("LNUM");
 
-                        if (ident.equals(varIdent) && dtype.equals(varDtype)) {
-                            value =  varValue;
-                        } else if (varDtype.equals("bool") && varIdent.equals(value) && lnum > varLnNum) {
+                        if (varDtype.equals("bool") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
                             isValidType = false;
                         }
+                    }
+                } else if (value.matches(LEXPR)) {
+                    // TODO
+                    
+                    if (value.contains("INVALID")) {
+                        valueMap.put("ERROR", value);
+                        return valueMap;
+                    } else {
+                        isValidType = true;
                     }
                 } else {
                     isValidType = false;
@@ -304,9 +335,49 @@ public class MyCodeCompiler {
         return valueMap;
     }
 
-//    public static boolean parseLogicalExpression(String expression) {
-//        
+//    public static boolean evaluateLogicalExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
+//        String fString = expression;
+//        for (String s : expression.split(AOPRT)) {
+//            String v = s.strip();
+//            if (v.matches(IDENT)) {
+//                for (HashMap hm : variableContainer) {
+//                    String varDtype = (String) hm.get("DTYPE");
+//                    String varIdent = (String) hm.get("IDENT");
+//                    String varValue = (String) hm.get("VALUE");
+//
+//                    if (v.equals(varIdent) && (varDtype.equals("int") || varDtype.equals("dec"))) {
+//                        fString = fString.replace(v, varValue);
+//                    }
+//                }
+//            }
+//        }
+//        return true;
 //    }
+    public static boolean parseLogicalExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
+        
+        
+        return true;
+    }
+
+    public static double evaluateArithmeticExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
+        String fString = expression;
+        for (String s : expression.split(AOPRT)) {
+            String v = s.strip();
+            if (v.matches(IDENT)) {
+                for (HashMap hm : variableContainer) {
+                    String varDtype = (String) hm.get("DTYPE");
+                    String varIdent = (String) hm.get("IDENT");
+                    String varValue = (String) hm.get("VALUE");
+
+                    if (v.equals(varIdent) && (varDtype.equals("int") || varDtype.equals("dec"))) {
+                        fString = fString.replace(v, varValue);
+                    }
+                }
+            }
+        }
+        return parseArithmeticExpression(fString);
+    }
+
     // SOURCE: https://www.geeksforgeeks.org/java/how-to-evaluate-math-expression-given-in-STRING-form-in-java/
     // Function to evaluate a mathematical expression given in STRING form
     public static double parseArithmeticExpression(String expression) {

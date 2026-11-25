@@ -51,7 +51,7 @@ FEATURE LIST:
     [x] text handling
         [x] proper tabulation
         [x] * mark file with changes
-        [x] undo & redo text
+        [?] undo & redo text            // FIXME: Undos initial text after opening files
         [x] syntax highlighter
     [x] file handling
         [x] create new file
@@ -65,18 +65,18 @@ FEATURE LIST:
         [x] display subfolders & files
         [x] open file on double-click
     [ ] parser
-        [?] print statement (strings, numbers, bool,
-            arithmetic expressions, variable values)
+        [x] print statement
         [?] variable declaration & assignment
-            (actual values & expressions)
+        [ ] variable re-assignment
+        [x] parse arithmetic expressions
+        [ ] parse logical expressions
         [ ] if-else statement
 
-    [?] run code
-        [?] display output
+    [x] run code
+        [x] display output
         [x] display status
 
     NOTES:
-    -- can't print variables yet (no symbol table)
     -- no parsing for logical expressions
  */
 public final class GUI_main extends javax.swing.JFrame {
@@ -847,12 +847,12 @@ public final class GUI_main extends javax.swing.JFrame {
     void onRunPressed() {
         String sourceCode = getSelectedTextPane().getText();
 
-        HashMap<String, Stack> outputHM
+        HashMap<String, Stack> outputHm
                 = MyCodeCompiler.compileProgram(sourceCode);
 
-        Stack<HashMap<String, Object>> vars = outputHM.get("VARS");
-        Stack<HashMap<String, Object>> errs = outputHM.get("ERRS");
-        Stack<HashMap<String, Object>> prnt = outputHM.get("PRNT");
+        Stack<HashMap<String, Object>> vars = outputHm.get("VARS");
+        Stack<HashMap<String, Object>> errs = outputHm.get("ERRS");
+        Stack<HashMap<String, Object>> prnt = outputHm.get("PRNT");
 
         if (errs.isEmpty()) {
             tpn_output.setText("""
@@ -880,7 +880,7 @@ public final class GUI_main extends javax.swing.JFrame {
                 tpn_status.setText("[STATUS]: ERRORS found in program.\n");
 
                 tpn_status.setText(
-                        tpn_status.getText() + "\n" + String.format("-- <ln %d>\t%s", hm.get("LNUM"), hm.get("ERROR"))
+                        tpn_status.getText() + "\n" + String.format("+ <ln %d>\t%s", hm.get("LNUM"), hm.get("ERROR"))
                 );
             }
         }
