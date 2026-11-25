@@ -32,6 +32,7 @@ public class MyStyledDocument extends DefaultStyledDocument {
     final AttributeSet attrCon = cont.addAttribute(attrBoldText, StyleConstants.Foreground, new Color(230, 48, 138));
     final AttributeSet attrVal = cont.addAttribute(attrItlcText, StyleConstants.Foreground, new Color(0, 191, 125));
     final AttributeSet attrSym = cont.addAttribute(attrBoldText, StyleConstants.Foreground, new Color(221, 51, 51));
+    final AttributeSet attrCom = cont.addAttribute(attrBoldText, StyleConstants.Foreground, new Color(173, 173, 173));
 
     // BASIS FOR THE REGEX
     String decimal = "[0-9]+\\.[0-9]+";
@@ -91,7 +92,10 @@ public class MyStyledDocument extends DefaultStyledDocument {
                     setCharacterAttributes(wordL, wordR - wordL, attrCon, false);
                 } else if (text.substring(wordL, wordR).matches("(\\W)*(" + values + ")")) {
                     setCharacterAttributes(wordL, wordR - wordL, attrVal, false);
-                } else {
+//                } else if (text.substring(wordL, wordR).matches("(\\W)*(>)")) {
+//                    setCharacterAttributes(wordL, wordR - wordL, attrCom, false);
+                } 
+                else {
                     if (text.charAt(wordL) == '>'
                             || text.charAt(wordL) == '<'
                             || text.charAt(wordL) == '='

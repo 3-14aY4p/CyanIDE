@@ -11,7 +11,7 @@ import java.util.regex.*;
  *
  * @author tianmei
  */
-public class MyCodeParser {
+public class MyCodeCompiler {
 
     // BNF GRAMMAR STUFFS
     final static String IDENT = "[A-Za-z_][A-Za-z0-9_]*";
@@ -23,10 +23,12 @@ public class MyCodeParser {
 
     final static String OPRT = "(\\+|-|\\*|/)";
     final static String EXPR = "("
-            + INTEGER + "|" + DECIMAL
+            + "(" + INTEGER + "|" + DECIMAL + ")"
             + "\\s*" + OPRT + "\\s*"
-            + INTEGER + "|" + DECIMAL
+            + "(" + INTEGER + "|" + DECIMAL + ")"
             + ")";
+
+    final static String DTYPE = "(int|dec|str|bool)";
 
     final static String VALUE = "(?:"
             + DECIMAL + "|"
@@ -36,19 +38,68 @@ public class MyCodeParser {
             + EXPR + ")";
 
     final static String GRAMMAR
-            = "\\s*(int|dec|str|bool)\\s+"
+            = "\\s*" + DTYPE + "\\s+"
             + "(" + IDENT + ")\\s*=\\s*"
             + "(" + VALUE + ")\\s*;\\s*";
 
-    public static Stack<HashMap<String, Object>> tokenizer() {
-        
+    final static String COMMENTPREFIX = ">>";
+
+    // MAIN FUNCTION
+    public static HashMap<String, Stack> compileProgram(String sourceCode) {
+        Stack<String> lines = new Stack<>();
+        lines.addAll(Arrays.asList(sourceCode.split("\n")));
+
+        HashMap<String, Stack> finalHashMap = new HashMap<>();
+
+        Stack<HashMap<String, Object>> vars = new Stack<>();
+        Stack<HashMap<String, Object>> errs = new Stack<>();
+        Stack<HashMap<String, Object>> prnt = new Stack<>();
+
+        for (String l : lines) {
+            int lnum = lines.indexOf(l) + 1;
+            l = l.strip();
+            HashMap<String, Object> hashMap = new HashMap<>();
+            
+            if (!(l.isBlank() || l.startsWith(COMMENTPREFIX))) {
+                if (l.matches("^" + DTYPE + ".*")) {
+                    hashMap = parseVariableAssignment(lnum, l, vars);
+                    if (hashMap.containsKey("ERROR")) {
+                        hashMap.put("LNUM", lnum);
+                        errs.add(hashMap);
+                    } else {
+                        hashMap.put("LNUM", lnum);
+                        vars.add(hashMap);
+                    }
+                } else if (l.matches("^echo.*")) {
+                    hashMap = parsePrintStatement(lnum, l, vars);
+                    if (hashMap.containsKey("ERROR")) {
+                        hashMap.put("LNUM", lnum);
+                        errs.add(hashMap);
+                    } else {
+                        hashMap.put("LNUM", lnum);
+                        prnt.add(hashMap);
+                    }
+                } else {
+                    hashMap.put("ERROR", "INVALID SYNTAX: Illegal start of expression.");
+                    hashMap.put("LNUM", lnum);
+
+                    errs.add(hashMap);
+                }
+            }
+        }
+
+        finalHashMap.put("VARS", vars);
+        finalHashMap.put("ERRS", errs);
+        finalHashMap.put("PRNT", prnt);
+
+        return finalHashMap;
     }
-    
-    public static HashMap<String, Object> parsePrintStatement(String line, Stack<HashMap<String, Object>> variableContainer) {
+
+    public static HashMap<String, Object> parsePrintStatement(int lnum, String line, Stack<HashMap<String, Object>> variableContainer) {
         // dictionary to be returned
         HashMap<String, Object> valueMap = new HashMap<>();
 
-        String outerRegex = "^\\s*tell\\((.*)\\)\\s*;$";
+        String outerRegex = "^\\s*echo\\((.*)\\)\\s*;$";
         String innerRegex = "^\\\"(.*)\\\"$";
 
         Pattern pattern = Pattern.compile(outerRegex);
@@ -60,29 +111,39 @@ public class MyCodeParser {
         }
         String extr = matcher.group(1);
         String stmt = "";
-
-        if (extr.matches(innerRegex)) {
+        
+        if (extr.contains("\"")) {
+            if (extr.matches(innerRegex)) {
             // removes "" and extracts STRING inside
-            stmt = extr.replaceAll("\\\"", "");
+                stmt = extr.replaceAll("\\\"", "");
+            } else {
+                valueMap.put("ERROR", "INVALID SYNTAX: Missing [\"] at the end of string.");
+                return valueMap;
+            }
         } else if (extr.matches(INTEGER + "|" + DECIMAL + "|" + BOOLEAN)) {
             stmt = extr;
         } else if (extr.matches(IDENT)) {
             for (HashMap hm : variableContainer) {
                 String varIdent = (String) hm.get("IDENT");
                 String varValue = (String) hm.get("VALUE");
+                int varLnNum = (int) hm.get("LNUM");
+                
+                System.out.println(varIdent.equals(extr) && lnum > varLnNum);
 
-                if (varIdent.equals(extr)) {
+                if (varIdent.equals(extr) && lnum > varLnNum) {
                     stmt = varValue;
                 } else {
-                    valueMap.put("ERROR", "INVALID SYNTAX: Variable " + extr + " not found.");
+                    valueMap.put("ERROR", "INVALID SYNTAX: Variable '" + extr + "' not found.");
                     return valueMap;
                 }
             }
         } else if (extr.matches(EXPR)) {
-            stmt = evaluateExpression(line, true);
-            if (stmt.contains("INVALID")) {
-                valueMap.put("ERROR", stmt);
+            String value = Double.toString(parseArithmeticExpression(line));
+            if (value.contains("INVALID")) {
+                valueMap.put("ERROR", value);
                 return valueMap;
+            } else {
+                stmt = value;
             }
         }
 
@@ -90,7 +151,7 @@ public class MyCodeParser {
         return valueMap;
     }
 
-    public static HashMap<String, Object> parseVariableAssignment(String line, Stack<HashMap<String, Object>> variableContainer) {
+    public static HashMap<String, Object> parseVariableAssignment(int lnum, String line, Stack<HashMap<String, Object>> variableContainer) {
         // dictionary to be returned
         HashMap<String, Object> valueMap = new HashMap<>();
 
@@ -98,7 +159,7 @@ public class MyCodeParser {
         Matcher matcher = pattern.matcher(line);
 
         if (!matcher.matches()) {
-            valueMap.put("ERROR", "INVALID SYNTAX: Declaration doesn't follow the grammar.");
+            valueMap.put("ERROR", "INVALID SYNTAX: Invalid 'declaration' structure.");
             return valueMap;
         }
 
@@ -119,8 +180,9 @@ public class MyCodeParser {
                         String varDtype = (String) hm.get("DTYPE");
                         String varIdent = (String) hm.get("IDENT");
                         String varValue = (String) hm.get("VALUE");
+                        int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("int") && varIdent.equals(value)) {
+                        if (varDtype.equals("int") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -128,7 +190,7 @@ public class MyCodeParser {
                         }
                     }
                 } else if (value.matches(EXPR)) {
-                    value = evaluateExpression(line, true);
+                    value = Integer.toString((int) parseArithmeticExpression(line));
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
                         return valueMap;
@@ -148,8 +210,9 @@ public class MyCodeParser {
                         String varDtype = (String) hm.get("DTYPE");
                         String varIdent = (String) hm.get("IDENT");
                         String varValue = (String) hm.get("VALUE");
+                        int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("dec") && varIdent.equals(value)) {
+                        if (varDtype.equals("dec") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -157,7 +220,7 @@ public class MyCodeParser {
                         }
                     }
                 } else if (value.matches(EXPR)) {
-                    value = evaluateExpression(line, false);
+                    value = Double.toString(parseArithmeticExpression(line));
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
                         return valueMap;
@@ -177,8 +240,9 @@ public class MyCodeParser {
                         String varDtype = (String) hm.get("DTYPE");
                         String varIdent = (String) hm.get("IDENT");
                         String varValue = (String) hm.get("VALUE");
+                        int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("str") && varIdent.equals(value)) {
+                        if (varDtype.equals("str") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -198,8 +262,9 @@ public class MyCodeParser {
                         String varDtype = (String) hm.get("DTYPE");
                         String varIdent = (String) hm.get("IDENT");
                         String varValue = (String) hm.get("VALUE");
+                        int varLnNum = (int) hm.get("LNUM");
 
-                        if (varDtype.equals("bool") && varIdent.equals(value)) {
+                        if (varDtype.equals("bool") && varIdent.equals(value) && lnum > varLnNum) {
                             value = varValue;
                             isValidType = true;
                         } else {
@@ -226,27 +291,14 @@ public class MyCodeParser {
     public static HashMap<String, Object> parseIfElseStatement(Stack<String> lines) {
         // dictionary to be returned
         HashMap<String, Object> valueMap = new HashMap<>();
-        
+
         return valueMap;
     }
+
 //    public static boolean parseLogicalExpression(String expression) {
 //        
 //    }
-    // just returns the clean string of the evaluated expression
-    public static String evaluateExpression(String line, boolean preferINT) {
-        try {
-            double parsedString = parseArithmeticExpression(line);
-
-            if (preferINT) {
-                return Integer.toString((int) parsedString);
-            } else {
-                return Double.toString(parsedString);
-            }
-        } catch (Exception e) {
-            return "INVALID EXPRESSION: Invalid 'expression' structure.";
-        }
-    }
-
+    
     // SOURCE: https://www.geeksforgeeks.org/java/how-to-evaluate-math-expression-given-in-STRING-form-in-java/
     // Function to evaluate a mathematical expression given in STRING form
     public static double parseArithmeticExpression(String expression) {

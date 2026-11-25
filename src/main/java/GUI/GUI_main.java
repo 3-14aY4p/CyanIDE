@@ -87,7 +87,6 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // for file handling
     final String customFileExt = ".rtxt";
-    final String commentPrefix = ">>";
 
     // monitor currently open files
     ArrayList<String> filepathCache = new ArrayList<>();
@@ -131,26 +130,24 @@ public final class GUI_main extends javax.swing.JFrame {
         JEditorPane welcomeTab = getSelectedTextPane();
         welcomeTab.setText(
                 welcomeTab.getText() + "\n"
-                + """
-                >> this is a comment.
-                          
+                + """  
                 >> this is how you declare variables               
-                str password = "password";
-                int whole_num = 18;            
-                dec decimal_num = 18.4;            
-                bool isJavaEasy = true;            
+                >> str password = "password";
+                >> int whole_num = 18;            
+                >> dec decimal_num = 18.4;            
+                >> bool isJavaEasy = true;            
 
                 >> this is how you print out text               
-                echo("hello world.");
+                >> echo("hello world.");
                   
                 >> this is how you write conditions
-                if (whole_num > 0) {
-                  
-                } elif (whole_num < 0) {
-                  
-                } else {
-                  
-                }
+                >> if (whole_num > 0) {
+                >>   
+                >> } elif (whole_num < 0) {
+                >>   
+                >> } else {
+                >>   
+                >> }
                   """
         );
         resetTabIcon();
@@ -264,6 +261,7 @@ public final class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_redo);
 
         btn_cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cut.png"))); // NOI18N
+        btn_cut.setEnabled(false);
         btn_cut.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_cut.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_cut.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -271,6 +269,7 @@ public final class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_cut);
 
         btn_copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/copy.png"))); // NOI18N
+        btn_copy.setEnabled(false);
         btn_copy.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_copy.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_copy.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -278,6 +277,7 @@ public final class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_copy);
 
         btn_paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/paste.png"))); // NOI18N
+        btn_paste.setEnabled(false);
         btn_paste.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_paste.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_paste.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -293,6 +293,7 @@ public final class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_run);
 
         btn_debug.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/debug.png"))); // NOI18N
+        btn_debug.setEnabled(false);
         btn_debug.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_debug.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_debug.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -300,6 +301,7 @@ public final class GUI_main extends javax.swing.JFrame {
         pnl_toolbar.add(btn_debug);
 
         btn_stop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/exit.png"))); // NOI18N
+        btn_stop.setEnabled(false);
         btn_stop.setMaximumSize(new java.awt.Dimension(24, 24));
         btn_stop.setMinimumSize(new java.awt.Dimension(24, 24));
         btn_stop.setPreferredSize(new java.awt.Dimension(24, 24));
@@ -739,9 +741,6 @@ public final class GUI_main extends javax.swing.JFrame {
             resetTabIcon();
         }
     }
-    
-    // PARSER FUNCTIONS
-    
 
     // EVENT HANDLERS
     void onNewFilePressed() {
@@ -755,9 +754,9 @@ public final class GUI_main extends javax.swing.JFrame {
                         tab_count++;
                     }
                 }
-                createTab("untitled-" + tab_count + customFileExt, false);
+                createTab("untitled-" + tab_count + customFileExt, true);
             } else {
-                createTab(nameInput + customFileExt, false);
+                createTab(nameInput + customFileExt, true);
             }
         }
     }
@@ -833,10 +832,52 @@ public final class GUI_main extends javax.swing.JFrame {
     void onOptionsPressed() {
         new GUI_options().setVisible(true);
     }
-    
+
     // TODO: RUNNING THE PROGRAM
     void onRunPressed() {
+        String sourceCode = getSelectedTextPane().getText();
+
+        HashMap<String, Stack> outputHM
+                = MyCodeCompiler.compileProgram(sourceCode);
+
+        Stack<HashMap<String, Object>> vars = outputHM.get("VARS");
+        Stack<HashMap<String, Object>> errs = outputHM.get("ERRS");
+        Stack<HashMap<String, Object>> prnt = outputHM.get("PRNT");
+
+        for (HashMap hm : prnt) {
+                System.out.println(hm);
+            }
         
+        if (errs.isEmpty()) {
+            tpn_output.setText("""
+                --- no errors found ---
+                 -------------------------------------------
+                    BUILD SUCCESS
+                 -------------------------------------------
+                """);
+            tpn_status.setText("[STATUS]: ERRORS found in program.\n");
+  
+            for (HashMap hm : prnt) {
+                tpn_output.setText(tpn_output.getText() + "\n" + hm.get("TEXT"));
+            }
+            for (HashMap hm : vars) {
+                tpn_status.setText(tpn_status.getText() + "\n" + hm);
+            }
+        } else {
+            for (HashMap hm : errs) {
+                tpn_output.setText("""
+                    --- errors found in program ---
+                     -------------------------------------------
+                        BUILD FAILED
+                     -------------------------------------------
+                    """);
+                tpn_status.setText("[STATUS]: ERRORS found in program.\n");
+
+                tpn_status.setText(
+                        tpn_status.getText() + "\n" + String.format("-- <ln %d>\t%s", hm.get("LNUM"), hm.get("ERROR"))
+                );
+            }
+        }
     }
 
     // MENU: FILE
@@ -891,7 +932,7 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // MENU: RUN
     private void mni_runActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_runActionPerformed
-        // TODO add your handling code here:
+        onRunPressed();
     }//GEN-LAST:event_mni_runActionPerformed
 
     private void mni_debugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_debugActionPerformed
@@ -930,7 +971,7 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // TOOL: RUN
     private void btn_runActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_runActionPerformed
-        // TODO add your handling code here:
+        onRunPressed();
     }//GEN-LAST:event_btn_runActionPerformed
 
     private void btn_debugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_debugActionPerformed
