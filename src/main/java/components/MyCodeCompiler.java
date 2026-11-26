@@ -6,6 +6,7 @@ package components;
 
 import java.util.*;
 import java.util.regex.*;
+import javax.script.*;
 
 /**
  *
@@ -21,17 +22,10 @@ public class MyCodeCompiler {
     final static String STRING = "\"[^\"\\r\\n]*\"";
     final static String BOOLEAN = "true|false";
 
-    final static String AOPRT = "(\\+|-|\\*|/)";
-    final static String AEXPR = "("
+    final static String OPRT = "(\\+|-|\\*|/|>|<|>=|<=|!=|&&|\\|\\||!)";
+    final static String EXPR = "("
             + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
-            + "(" + "\\s*" + AOPRT + "\\s*"
-            + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")" + ")+"
-            + ")";
-
-    final static String LOPRT = "(\\+|-|\\*|/)";
-    final static String LEXPR = "("
-            + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
-            + "(" + "\\s*" + AOPRT + "\\s*"
+            + "(" + "\\s*" + OPRT + "\\s*"
             + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")" + ")+"
             + ")";
 
@@ -45,7 +39,7 @@ public class MyCodeCompiler {
             + INTEGER + "|"
             + STRING + "|"
             + BOOLEAN + "|"
-            + AEXPR + "|"
+            + EXPR + "|"
             + NULL + ")";
 
     final static String GRAMMAR
@@ -152,9 +146,9 @@ public class MyCodeCompiler {
                 valueMap.put("ERROR", "INVALID SYNTAX: Variable '" + extr + "' not found.");
                 return valueMap;
             }
-        } else if (extr.matches(AEXPR)) {
+        } else if (extr.matches(EXPR)) {
             String value = "";
-            double res = evaluateArithmeticExpression(extr, variableContainer);
+            double res = evaluateExpression(extr, variableContainer);
             if (res % 1 != 0) {
                 value = Double.toString(res);
             } else {
@@ -167,8 +161,6 @@ public class MyCodeCompiler {
             } else {
                 stmt = value;
             }
-        } else if (extr.matches(LEXPR)) {
-            // TODO
         }
 
         valueMap.put("TEXT", stmt);
@@ -220,8 +212,8 @@ public class MyCodeCompiler {
                             isValidType = false;
                         }
                     }
-                } else if (value.matches(AEXPR)) {
-                    value = Integer.toString((int) evaluateArithmeticExpression(line, variableContainer));
+                } else if (value.matches(EXPR)) {
+                    value = Integer.toString((int) evaluateExpression(line, variableContainer));
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
                         return valueMap;
@@ -250,8 +242,8 @@ public class MyCodeCompiler {
                             isValidType = false;
                         }
                     }
-                } else if (value.matches(AEXPR)) {
-                    value = Double.toString(evaluateArithmeticExpression(line, variableContainer));
+                } else if (value.matches(EXPR)) {
+                    value = Double.toString(evaluateExpression(line, variableContainer));
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
                         return valueMap;
@@ -302,9 +294,9 @@ public class MyCodeCompiler {
                             isValidType = false;
                         }
                     }
-                } else if (value.matches(LEXPR)) {
+                } else if (value.matches(EXPR)) {
                     // TODO
-                    
+
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
                         return valueMap;
@@ -315,6 +307,7 @@ public class MyCodeCompiler {
                     isValidType = false;
                 }
             }
+
         }
 
         // set values for return
@@ -335,33 +328,9 @@ public class MyCodeCompiler {
         return valueMap;
     }
 
-//    public static boolean evaluateLogicalExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
-//        String fString = expression;
-//        for (String s : expression.split(AOPRT)) {
-//            String v = s.strip();
-//            if (v.matches(IDENT)) {
-//                for (HashMap hm : variableContainer) {
-//                    String varDtype = (String) hm.get("DTYPE");
-//                    String varIdent = (String) hm.get("IDENT");
-//                    String varValue = (String) hm.get("VALUE");
-//
-//                    if (v.equals(varIdent) && (varDtype.equals("int") || varDtype.equals("dec"))) {
-//                        fString = fString.replace(v, varValue);
-//                    }
-//                }
-//            }
-//        }
-//        return true;
-//    }
-    public static boolean parseLogicalExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
-        
-        
-        return true;
-    }
-
-    public static double evaluateArithmeticExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
+    public static double evaluateExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
         String fString = expression;
-        for (String s : expression.split(AOPRT)) {
+        for (String s : expression.split(OPRT)) {
             String v = s.strip();
             if (v.matches(IDENT)) {
                 for (HashMap hm : variableContainer) {
@@ -375,12 +344,19 @@ public class MyCodeCompiler {
                 }
             }
         }
-        return parseArithmeticExpression(fString);
+        Pattern p = Pattern.compile("(" + EXPR + ")");
+        Matcher m = p.matcher(fString);
+
+        if (m.find()) {
+            fString = m.group(2);
+        }
+
+        return parseExpression(fString);
     }
 
     // SOURCE: https://www.geeksforgeeks.org/java/how-to-evaluate-math-expression-given-in-STRING-form-in-java/
     // Function to evaluate a mathematical expression given in STRING form
-    public static double parseArithmeticExpression(String expression) {
+    public static double parseExpression(String expression) {
         try {
             char[] tokens = expression.toCharArray();
 
@@ -445,7 +421,7 @@ public class MyCodeCompiler {
 
             // The result is the only remaining element in the values stack
             return values.pop();
-        } catch (NumberFormatException numberFormatException) {
+        } catch (Exception e) {
             return 0;
         }
     }
