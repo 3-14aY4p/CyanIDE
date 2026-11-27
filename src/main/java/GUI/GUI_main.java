@@ -7,17 +7,36 @@ package GUI;
 // custom packages
 import components.*;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.time.*;
-import java.time.format.*;
-import java.util.*;
-import java.util.concurrent.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.filechooser.*;
-import javax.swing.tree.*;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Stack;
+import java.util.concurrent.ExecutionException;
+import javax.swing.ImageIcon;
+import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JViewport;
+import javax.swing.SwingWorker;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+
 
 /**
  *
@@ -94,6 +113,7 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // for dir navigator
     private final DefaultTreeModel treeModel;
+    static File currentDirectory;
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GUI_main.class.getName());
 
@@ -146,9 +166,16 @@ public final class GUI_main extends javax.swing.JFrame {
                 >> this is how you declare a variable
                 int x <- 5;
                   
-                >> you can use arithmetic on this!
+                >> you can use arithmetic and relational operations
+                >> note that in relational operators,
+                  >> != has been changed to <>
+                  >> <= has been changed to <<
+                  >> >= has been changed to >>
+                >> please do also note that logical expressions are
+                >> not yet available/implemented
+                  
                 int y <- x - 3;
-                echo(y);
+                echo(y + 4 > 5);
                   
                 >> this is how you write conditionals
                 if (condition 1):
@@ -565,7 +592,7 @@ public final class GUI_main extends javax.swing.JFrame {
         tbpn_editor.setSelectedComponent(tab);
         tabView.getDocument().addDocumentListener(new DocumentListener() {
             ImageIcon icon = new ImageIcon("src/main/resources/icons/asterisk.png");
-            
+
             @Override
             public void insertUpdate(DocumentEvent de) {
                 updateIcon();
@@ -580,7 +607,7 @@ public final class GUI_main extends javax.swing.JFrame {
             public void changedUpdate(DocumentEvent de) {
                 updateIcon();
             }
-            
+
             public void updateIcon() {
                 tbpn_editor.setIconAt(tbpn_editor.getSelectedIndex(), icon);
             }
@@ -766,6 +793,8 @@ public final class GUI_main extends javax.swing.JFrame {
             filepathCache.add(file.getPath());
             updateTabTitle(file.getName());
             resetTabIcon();
+
+            loadSelectedFolder(currentDirectory);
         }
     }
 
@@ -825,7 +854,11 @@ public final class GUI_main extends javax.swing.JFrame {
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFolder = fileChooser.getSelectedFile();
-            loadSelectedFolder(selectedFolder);
+            currentDirectory = selectedFolder;
+
+            if (currentDirectory != null) {
+                loadSelectedFolder(selectedFolder);
+            }
         }
     }
 

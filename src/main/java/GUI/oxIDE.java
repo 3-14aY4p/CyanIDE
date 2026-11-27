@@ -3,10 +3,13 @@
  */
 package GUI;
 
-import com.formdev.flatlaf.*;
-import java.io.*;
-import java.util.*;
-import javax.swing.*;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import java.io.File;
+import java.io.FileReader;
+import java.util.Properties;
+import javax.swing.JOptionPane;
+import javax.swing.LookAndFeel;
 
 /**
  *

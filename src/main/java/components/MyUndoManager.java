@@ -4,9 +4,10 @@
  */
 package components;
 
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.undo.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.text.AbstractDocument;
+import javax.swing.undo.UndoManager;
 
 /**
  *
