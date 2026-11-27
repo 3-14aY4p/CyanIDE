@@ -13,6 +13,8 @@ import java.util.regex.*;
  */
 public class MyCodeCompiler {
 
+    final static double ERRORCODE = Double.MAX_VALUE - Double.MAX_VALUE * 2;
+
     // BNF VARGRAMMAR STUFFS
     final static String IDENT = "[A-Za-z_][A-Za-z0-9_]*";
 
@@ -21,7 +23,14 @@ public class MyCodeCompiler {
     final static String STRING = "\"[^\"\\r\\n]*\"";
     final static String BOOLEAN = "true|false";
 
-    final static String OPRT = "(\\+|-|\\*|/|>|<|>=|<=|!=|&&|\\|\\||!)";
+    /*
+    <  :
+    << : <=
+    >  :
+    >> : >=
+    <> : !=
+     */
+    final static String OPRT = "(\\+|-|\\*|/|<|>|<<|>>|<>)";
     final static String EXPR = "("
             + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
             + "(" + "\\s*" + OPRT + "\\s*"
@@ -85,7 +94,6 @@ public class MyCodeCompiler {
                     }
                 } else if (l.matches("(^if.*|.*}*elif.*|.*}*else.*|^endif$)")) {
                     if (l.matches("(^if.*)")) {
-                        System.out.println("test");
                         HashMap<String, Stack<HashMap<String, Object>>> ifResults = parseIfElseStatement(lnum, lines, vars);
 
                         vars.addAll(ifResults.get("VARS"));
@@ -163,11 +171,25 @@ public class MyCodeCompiler {
                 value = Integer.toString((int) res);
             }
 
-            if (value.contains("INVALID")) {
-                valueMap.put("ERROR", value);
+            if (value.contains(Double.toString(ERRORCODE))) {
+                valueMap.put("ERROR", "INVALID SYNTAX: Invalid 'expression'.");
                 return valueMap;
             } else {
-                stmt = value;
+                if (!extr.matches(".*(<|<<|>|>>|<>).*")) {
+                    stmt = value;
+                } else {
+                    switch (value) {
+                        case "1":
+                            stmt = "true";
+                            break;
+                        case "0":
+                            stmt = "false";
+                            break;
+                        default:
+                            valueMap.put("ERROR", "INVALID SYNTAX: Invalid relational 'expression'.");
+                            return valueMap;
+                    }
+                }
             }
         }
 
@@ -222,9 +244,8 @@ public class MyCodeCompiler {
                     }
                 } else if (value.matches(EXPR)) {
                     value = Integer.toString((int) evaluateExpression(line, variableContainer));
-                    if (value.contains("INVALID")) {
-                        valueMap.put("ERROR", value);
-                        return valueMap;
+                    if (value.contains(String.valueOf(ERRORCODE))) {
+                        isValidType = false;
                     } else {
                         isValidType = true;
                     }
@@ -252,9 +273,8 @@ public class MyCodeCompiler {
                     }
                 } else if (value.matches(EXPR)) {
                     value = Double.toString(evaluateExpression(line, variableContainer));
-                    if (value.contains("INVALID")) {
-                        valueMap.put("ERROR", value);
-                        return valueMap;
+                    if (value.contains(String.valueOf(ERRORCODE))) {
+                        isValidType = false;
                     } else {
                         isValidType = true;
                     }
@@ -303,13 +323,23 @@ public class MyCodeCompiler {
                         }
                     }
                 } else if (value.matches(EXPR)) {
-                    // TODO: bool assignment w/ expressions
-
-                    if (value.contains("INVALID")) {
-                        valueMap.put("ERROR", value);
-                        return valueMap;
+                    String tvalue = Integer.toString((int) evaluateExpression(line, variableContainer));
+                    if (tvalue.contains(String.valueOf(ERRORCODE))) {
+                        isValidType = false;
                     } else {
-                        isValidType = true;
+                        switch (tvalue) {
+                            case "1":
+                                value = "true";
+                                isValidType = true;
+                                break;
+                            case "0":
+                                value = "false";
+                                isValidType = true;
+                                break;
+                            default:
+                                isValidType = false;
+                                break;
+                        }
                     }
                 } else {
                     isValidType = false;
@@ -342,8 +372,6 @@ public class MyCodeCompiler {
         String elifPart = "^elif\\s*\\((.*)\\)\\s*:\\s*$";
         String elsePart = "^else\\s*:\\s*$";
 
-        
-        
         valueMap.put("VARS", vars);
         valueMap.put("ERRS", errs);
         valueMap.put("PRNT", prnt);
@@ -352,7 +380,6 @@ public class MyCodeCompiler {
     }
 
     // TODO: parse bool statement
-    
     public static double evaluateExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
         String fString = expression;
         for (String s : expression.split(OPRT)) {
@@ -363,9 +390,18 @@ public class MyCodeCompiler {
                     String varIdent = (String) hm.get("IDENT");
                     String varValue = (String) hm.get("VALUE");
 
-                    if (v.equals(varIdent) && (varDtype.equals("int") || varDtype.equals("dec"))) {
+                    if (v.equals(varIdent) && (varDtype.equals("int") || varDtype.equals("dec") || varDtype.equals("bool"))) {
+                        if (varDtype.equals("bool")) {
+                            int b;
+                            if (varValue.equals("true")) {
+                                b = 1;
+                            } else {
+                                b = 0;
+                            }
+                            fString = fString.replace(v, String.valueOf(b));
+                        }
                         fString = fString.replace(v, varValue);
-                    } 
+                    }
                 }
             }
         }
@@ -375,7 +411,6 @@ public class MyCodeCompiler {
         if (m.find()) {
             fString = m.group(2);
         }
-
         return parseExpression(fString);
     }
 
@@ -387,7 +422,7 @@ public class MyCodeCompiler {
 
             // Stacks to store operands and operators
             Stack<Double> values = new Stack<>();
-            Stack<Character> operators = new Stack<>();
+            Stack<String> operators = new Stack<>();
 
             // Iterate through each character in the expression
             for (int i = 0; i < tokens.length; i++) {
@@ -412,28 +447,46 @@ public class MyCodeCompiler {
                     // increment in the loop
                 } else if (tokens[i] == '(') {
                     // If the character is '(', push it to the operators stack
-                    operators.push(tokens[i]);
+                    operators.push(String.valueOf(tokens[i]));
                 } else if (tokens[i] == ')') {
                     // If the character is ')', pop and apply operators until '(' is encountered
-                    while (operators.peek() != '(') {
+                    while (operators.peek() != "(") {
                         values.push(applyOperator(
                                 operators.pop(), values.pop(),
                                 values.pop()));
                     }
                     operators.pop(); // Pop the '('
+                } else if (tokens[i] == '<' || tokens[i] == '>') {
+                    StringBuilder sb = new StringBuilder();
+
+                    while (i < tokens.length
+                            && (tokens[i] == '<' || tokens[i] == '>')) {
+                        sb.append(tokens[i]);
+                        i++;
+                    }
+                    while (!operators.isEmpty()
+                            && hasPrecedence(String.valueOf(tokens[i]),
+                                    operators.peek())) {
+                        values.push(applyOperator(
+                                operators.pop(), values.pop(),
+                                values.pop()));
+                    }
+
+                    operators.push(sb.toString());
+                    i--;
+                    // increment in the loop
                 } else if (tokens[i] == '+' || tokens[i] == '-'
-                        || tokens[i] == '*'
-                        || tokens[i] == '/') {
+                        || tokens[i] == '*' || tokens[i] == '/') {
                     // If the character is an operator, pop and apply operators with higher precedence
                     while (!operators.isEmpty()
-                            && hasPrecedence(tokens[i],
+                            && hasPrecedence(String.valueOf(tokens[i]),
                                     operators.peek())) {
                         values.push(applyOperator(
                                 operators.pop(), values.pop(),
                                 values.pop()));
                     }
                     // Push the current operator to the operators stack
-                    operators.push(tokens[i]);
+                    operators.push(String.valueOf(tokens[i]));
                 }
             }
 
@@ -447,39 +500,83 @@ public class MyCodeCompiler {
             // The result is the only remaining element in the values stack
             return values.pop();
         } catch (Exception e) {
-            return 0;
+            return ERRORCODE;
         }
     }
 
-    // Function to check if operator1 has higher precedence than operator2
-    private static boolean hasPrecedence(char operator1, char operator2) {
-        if (operator2 == '(' || operator2 == ')') {
+    // Function to check if operator1 has higher precedence than operator2   
+    private static boolean hasPrecedence(String operator1, String operator2) {
+        if (operator2 == "(" || operator2 == ")") {
             return false;
         }
-        return (operator1 != '*' && operator1 != '/')
-                || (operator2 != '+' && operator2 != '-');
+        return (operator1 != "*" && operator1 != "/")
+                || (operator2 != "+" && operator2 != "-")
+                || (operator2 != "<" && operator2 != "<<"
+                && operator2 != ">" && operator2 != ">>"
+                && operator2 != "<>");
     }
 
     // Function to apply the operator to two operands
-    private static double applyOperator(char operator, double b, double a) {
+    private static double applyOperator(String operator, double b, double a) {
+        double res = 0;
+
         switch (operator) {
-            case '+' -> {
-                return a + b;
+            // arithmetic operators
+            case "+" -> {
+                res = a + b;
             }
-            case '-' -> {
-                return a - b;
+            case "-" -> {
+                res = a - b;
             }
-            case '*' -> {
-                return a * b;
+            case "*" -> {
+                res = a * b;
             }
-            case '/' -> {
+            case "/" -> {
                 if (b == 0) {
                     throw new ArithmeticException(
                             "Cannot divide by zero");
                 }
-                return a / b;
+                res = a / b;
+            }
+
+            // relational operators
+            case "<" -> {
+                if (a < b) {
+                    res = 1;
+                } else {
+                    res = 0;
+                }
+            }
+            case "<<" -> {
+                if (a <= b) {
+                    res = 1;
+                } else {
+                    res = 0;
+                }
+            }
+            case ">" -> {
+                if (a > b) {
+                    res = 1;
+                } else {
+                    res = 0;
+                }
+            }
+            case ">>" -> {
+                if (a >= b) {
+                    res = 1;
+                } else {
+                    res = 0;
+                }
+            }
+            case "<>" -> {
+                if (a != b) {
+                    res = 1;
+                } else {
+                    res = 0;
+                }
             }
         }
-        return 0;
+
+        return res;
     }
 }

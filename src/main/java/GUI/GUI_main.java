@@ -66,18 +66,15 @@ FEATURE LIST:
         [x] open file on double-click
     [ ] parser
         [x] print statement
-        [?] variable declaration & assignment
+        [x] variable declaration & assignment
         [ ] variable re-assignment
         [x] parse arithmetic expressions
-        [ ] parse logical expressions
+        [x] parse relational expressions
         [ ] if-else statement
 
     [x] run code
         [x] display output
         [x] display status
-
-    NOTES:
-    -- no parsing for logical expressions
  */
 public final class GUI_main extends javax.swing.JFrame {
 
