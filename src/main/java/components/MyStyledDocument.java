@@ -17,7 +17,7 @@ import javax.swing.text.*;
  */
 public class MyStyledDocument extends DefaultStyledDocument {
 
-    private static final String DELIMITERS = ".,;\\(\\)";
+    private static final String DELIMITERS = ".,:;\\(\\)";
 
     @Override
     public void insertString(int offset, String text, AttributeSet a) throws BadLocationException {

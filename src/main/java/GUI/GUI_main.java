@@ -137,6 +137,9 @@ public final class GUI_main extends javax.swing.JFrame {
                 + """  
                 >> this is a comment
                   
+                >> this is a print statement
+                echo("hello world");
+                  
                 >> this language uses only 4 datatypes:
                 >> int  : integer
                 >> dec  : decimal
@@ -145,6 +148,22 @@ public final class GUI_main extends javax.swing.JFrame {
                   
                 >> this is how you declare a variable
                 int x <- 5;
+                  
+                >> you can use arithmetic on this!
+                int y <- x - 3;
+                echo(y);
+                  
+                >> this is how you write conditionals
+                if (condition 1):
+                  ...
+                elif (condition 2):
+                  ...
+                elif (condition 3):
+                  ...
+                else:
+                  ...
+                endif
+                  
                   """
         );
         resetTabIcon();
@@ -213,7 +232,7 @@ public final class GUI_main extends javax.swing.JFrame {
         mni_zoomOut = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("oxIDE");
+        setTitle("CyanIDE");
         setResizable(false);
         java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0);
         flowLayout1.setAlignOnBaseline(true);
@@ -545,6 +564,7 @@ public final class GUI_main extends javax.swing.JFrame {
         tbpn_editor.add(tab);
         tab.setViewportView(tabView);
 
+        // this is for marking when you have added unsaved changes onto the file
         tbpn_editor.setSelectedComponent(tab);
         tabView.getDocument().addDocumentListener(new DocumentListener() {
             ImageIcon icon = new ImageIcon("src/main/resources/icons/asterisk.png");

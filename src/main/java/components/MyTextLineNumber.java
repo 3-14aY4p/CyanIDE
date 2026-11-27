@@ -133,7 +133,7 @@ public class MyTextLineNumber extends JPanel
     }
 
     /**
-     * The Color used to render the current line digits. Default is Coolor.RED.
+     * The Color used to render the current line digits. Default is Color.RED.
      *
      * @param currentLineForeground the Color used to render the current line
      */
@@ -176,7 +176,7 @@ public class MyTextLineNumber extends JPanel
     }
 
     /**
-     * Specify the mimimum number of digits used to calculate the preferred
+     * Specify the minimum number of digits used to calculate the preferred
      * width of the component. Default is 3.
      *
      * @param minimumDisplayDigits the number digits used in the preferred width

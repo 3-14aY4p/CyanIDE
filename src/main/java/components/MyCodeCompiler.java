@@ -6,7 +6,6 @@ package components;
 
 import java.util.*;
 import java.util.regex.*;
-import javax.script.*;
 
 /**
  *
@@ -14,7 +13,7 @@ import javax.script.*;
  */
 public class MyCodeCompiler {
 
-    // BNF GRAMMAR STUFFS
+    // BNF VARGRAMMAR STUFFS
     final static String IDENT = "[A-Za-z_][A-Za-z0-9_]*";
 
     final static String INTEGER = "-?[0-9]+";
@@ -42,7 +41,7 @@ public class MyCodeCompiler {
             + EXPR + "|"
             + NULL + ")";
 
-    final static String GRAMMAR
+    final static String VARGRAMMAR
             = "\\s*" + DTYPE + "\\s+"
             + "(" + IDENT + ")\\s*<-\\s*"
             + "(" + VALUE + ")\\s*;\\s*";
@@ -65,7 +64,7 @@ public class MyCodeCompiler {
             l = l.strip();
             HashMap<String, Object> hashMap = new HashMap<>();
 
-            if (!(l.isBlank() || l.startsWith(COMMENTPREFIX))) {
+            if (!(l.isBlank() || l.startsWith(COMMENTPREFIX) || l.startsWith("..."))) {
                 if (l.matches("^" + DTYPE + ".*")) {
                     hashMap = parseVariableAssignment(lnum, l, vars);
                     if (hashMap.containsKey("ERROR")) {
@@ -83,6 +82,15 @@ public class MyCodeCompiler {
                     } else {
                         hashMap.put("LNUM", lnum);
                         prnt.add(hashMap);
+                    }
+                } else if (l.matches("(^if.*|.*}*elif.*|.*}*else.*|^endif$)")) {
+                    if (l.matches("(^if.*)")) {
+                        System.out.println("test");
+                        HashMap<String, Stack<HashMap<String, Object>>> ifResults = parseIfElseStatement(lnum, lines, vars);
+
+                        vars.addAll(ifResults.get("VARS"));
+                        errs.addAll(ifResults.get("ERRS"));
+                        prnt.addAll(ifResults.get("PRNT"));
                     }
                 } else {
                     hashMap.put("ERROR", "INVALID SYNTAX: Illegal start of expression.");
@@ -171,7 +179,7 @@ public class MyCodeCompiler {
         // dictionary to be returned
         HashMap<String, Object> valueMap = new HashMap<>();
 
-        Pattern pattern = Pattern.compile(GRAMMAR);
+        Pattern pattern = Pattern.compile(VARGRAMMAR);
         Matcher matcher = pattern.matcher(line);
 
         if (!matcher.matches()) {
@@ -295,7 +303,7 @@ public class MyCodeCompiler {
                         }
                     }
                 } else if (value.matches(EXPR)) {
-                    // TODO
+                    // TODO: bool assignment w/ expressions
 
                     if (value.contains("INVALID")) {
                         valueMap.put("ERROR", value);
@@ -321,13 +329,30 @@ public class MyCodeCompiler {
         return valueMap;
     }
 
-    public static HashMap<String, Object> parseIfElseStatement(Stack<String> lines) {
+    // TODO: parse if-else statement
+    public static HashMap<String, Stack<HashMap<String, Object>>> parseIfElseStatement(int lnum, Stack<String> lines, Stack<HashMap<String, Object>> variableContainer) {
         // dictionary to be returned
-        HashMap<String, Object> valueMap = new HashMap<>();
+        HashMap<String, Stack<HashMap<String, Object>>> valueMap = new HashMap<>();
+
+        Stack<HashMap<String, Object>> vars = new Stack<>();
+        Stack<HashMap<String, Object>> errs = new Stack<>();
+        Stack<HashMap<String, Object>> prnt = new Stack<>();
+
+        String ifPart = "^if\\s*\\((.*)\\)\\s*:\\s*$";
+        String elifPart = "^elif\\s*\\((.*)\\)\\s*:\\s*$";
+        String elsePart = "^else\\s*:\\s*$";
+
+        
+        
+        valueMap.put("VARS", vars);
+        valueMap.put("ERRS", errs);
+        valueMap.put("PRNT", prnt);
 
         return valueMap;
     }
 
+    // TODO: parse bool statement
+    
     public static double evaluateExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
         String fString = expression;
         for (String s : expression.split(OPRT)) {
@@ -340,7 +365,7 @@ public class MyCodeCompiler {
 
                     if (v.equals(varIdent) && (varDtype.equals("int") || varDtype.equals("dec"))) {
                         fString = fString.replace(v, varValue);
-                    }
+                    } 
                 }
             }
         }

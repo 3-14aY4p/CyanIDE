@@ -34,7 +34,7 @@ public class MyTextPane extends JTextPane implements UndoableEditListener {
     final static String SPCCH = "\\+|-|\\*|/|=|>|<|==|>=|<=|!=|<-";
     final static String SPCVL = "null|true|false";
     final static String DTYPE = "int|dec|str|bool";
-    final static String CONDS = "if|elif|else";
+    final static String CONDS = "if|elif|else|endif";
     final static String FUNCS = "echo";
 
     public MyTextPane(JButton btn_undo, JButton btn_redo,
@@ -46,29 +46,8 @@ public class MyTextPane extends JTextPane implements UndoableEditListener {
         this.REDO_MNI = mni_redo;
 
         MyStyledDocument doc = new MyStyledDocument();
-        Style col = doc.getStyle(StyleContext.DEFAULT_STYLE);
-
-        Color prp = new Color(147, 112, 219);
-        Color pnk = new Color(241, 91, 181);
-        Color sea = new Color(69, 123, 157);
-        Color ocn = new Color(29, 53, 87);
-
-        // set syntax to be highlighted
-        for (String s : SPCCH.split("\\|")) {
-            StyleConstants.setForeground(doc.addStyle(s, col), prp);
-        }
-        for (String s : SPCVL.split("\\|")) {
-            StyleConstants.setForeground(doc.addStyle(s, col), ocn);
-        }
-        for (String s : DTYPE.split("\\|")) {
-            StyleConstants.setForeground(doc.addStyle(s, col), pnk);
-        }
-        for (String s : CONDS.split("\\|")) {
-            StyleConstants.setForeground(doc.addStyle(s, col), sea);
-        }
-        for (String s : FUNCS.split("\\|")) {
-            StyleConstants.setForeground(doc.addStyle(s, col), sea);
-        }
+        
+        applySyntaxColors(doc);
 
         doc.addUndoableEditListener(this);
         setStyledDocument(doc);
@@ -88,6 +67,33 @@ public class MyTextPane extends JTextPane implements UndoableEditListener {
             Toolkit.getDefaultToolkit().beep();
         }
     };
+
+    public void applySyntaxColors(MyStyledDocument doc) {
+        Style col = doc.getStyle(StyleContext.DEFAULT_STYLE);
+
+        Color prp = new Color(147, 112, 219);
+        Color pnk = new Color(241, 91, 181);
+        Color sea = new Color(65, 125, 193);
+        Color tel = new Color(0, 130, 127);
+        Color orn = new Color(254, 90, 29);
+
+        // set syntax to be highlighted
+        for (String s : SPCCH.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), prp);
+        }
+        for (String s : SPCVL.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), tel);
+        }
+        for (String s : DTYPE.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), pnk);
+        }
+        for (String s : CONDS.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), orn);
+        }
+        for (String s : FUNCS.split("\\|")) {
+            StyleConstants.setForeground(doc.addStyle(s, col), sea);
+        }
+    }
 
     public void undo() {
         try {
@@ -129,6 +135,8 @@ public class MyTextPane extends JTextPane implements UndoableEditListener {
 
     @Override
     public void undoableEditHappened(UndoableEditEvent uee) {
+        applySyntaxColors((MyStyledDocument) getStyledDocument());
+        
         undoManager.undoableEditHappened(uee);
     }
 }
