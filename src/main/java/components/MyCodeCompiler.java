@@ -81,7 +81,7 @@ public class MyCodeCompiler {
                 isInIf = false;
             }
 
-            hashMap = parseLine(lnum, l, vars, isInIf);
+            hashMap = parseLine(lnum, l, vars, lines, isInIf);
 
             if (hashMap.containsKey("TYPE") && hashMap.get("TYPE").equals("VAR")) {
                 vars.add(hashMap);
@@ -102,10 +102,10 @@ public class MyCodeCompiler {
         return finalHashMap;
     }
 
-    public static HashMap<String, Object> parseLine(int lnum, String l, Stack<HashMap<String, Object>> vars, boolean isInIf) {
+    public static HashMap<String, Object> parseLine(int lnum, String l, Stack<HashMap<String, Object>> vars, Stack<String> lines, boolean isInIf) {
         HashMap<String, Object> hashMap = new HashMap<>();
 
-        if (!(l.isBlank() || l.startsWith(COMMENTPREFIX) || l.startsWith("..."))) {
+        if (!(l.isBlank() || l.startsWith(COMMENTPREFIX) || l.startsWith("...") || l.matches(endifPart))) {
             if (l.matches("^" + DTYPE + ".*")) {
                 hashMap = parseVariableAssignment(lnum, l, vars);
                 if (hashMap.containsKey("ERROR")) {
@@ -123,7 +123,7 @@ public class MyCodeCompiler {
                     hashMap.put("TYPE", "PRN");
                 }
             } else if (isInIf) {
-                hashMap.put("IFST", parseIfElseStatement(lnum, null, vars));
+                hashMap.put("IFST", parseIfElseStatement(lnum, lines, vars));
             } else {
                 hashMap.put("ERROR", "INVALID SYNTAX: Illegal start of expression.");
                 hashMap.put("LNUM", lnum);
@@ -393,11 +393,26 @@ public class MyCodeCompiler {
         boolean hasEl = false;
 
         for (int i = lnum - 1; i < lines.size(); i++) {
-            if (lines.elementAt(i).equals(endifPart) && hasIf) {
+            HashMap<String, Object> hm = new HashMap<>();
+            String l = lines.elementAt(i);
+
+            // ends the loop
+            if (l.equals(endifPart) && hasIf) {
                 break;
+            } else if (l.equals(endifPart) && !hasIf) {
+                hm.put("ERROR", "INVALID SYNTAX: No 'if' statement to be closed.");
+                errs.add(hm);
             }
 
-            
+            // checks if the 'if' part is valid
+            if (l.equals(ifPart)) {
+                if (hasIf || hasEl) {
+                    hm.put("ERROR", "INVALID SYNTAX: Previous 'if' statement not properly closed.");
+                    errs.add(hm);
+                } else {
+                    System.out.println("test");
+                }
+            }
         }
 
         valueMap.put("VARS", vars);
