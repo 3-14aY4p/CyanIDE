@@ -61,7 +61,7 @@ public class MyStyledDocument extends DefaultStyledDocument {
         highlightKeywords(text, startOffset);
         
         // for comments
-        if (text.strip().startsWith(">>")) {
+        if (text.strip().startsWith("#")) {
             setCharacterAttributes(startOffset, text.length(), comments, true);
         }
     }

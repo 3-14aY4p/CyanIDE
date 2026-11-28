@@ -53,18 +53,18 @@ import javax.swing.tree.DefaultTreeModel;
  * - line numbering
  * - code/syntax highlighter
  * - code parsing for output
- * + print statement
- * + variable declaration
- * + variable assignment
- * + evaluate expressions
- * + if-else statement
+ * +++ print statement
+ * +++ variable declaration
+ * +++ variable assignment
+ * +++ evaluate expressions
+ * +++ if-else statement
  * 
  * FEATURE LIST:
  * [x] get session/user's name
  * [x] get OS & determine font
- * [x] get previous session's user
- * config (i.e. theme/LAF)
- * [x] tab handling
+ * [x] get config file properties
+ * 
+ * TAB HANDLING
  * [x] new tab (on new and open file)
  * [x] close tab (double-click LMB)
  * [x] text handling
@@ -72,27 +72,29 @@ import javax.swing.tree.DefaultTreeModel;
  * [x] * mark file with changes
  * [?] undo & redo text // FIXME: Undos initial text and styles
  * [x] syntax highlighter
- * [x] file handling
+ * [ ] only highlight when custom file ext is used
+ * 
+ * FILE HANDLING
  * [x] create new file
- * [x] open file
- * [x] filepath cache (if a file is already open,
- * navigate to it instead of opening new tab)
  * [x] save file
  * [x] save file as
+ * [x] open file
+ * [x] filepath cache
  * [x] dir navigator
  * [x] open folder/directory
  * [x] display subfolders & files
  * [x] open file on double-click
- * [ ] parser
+ * 
+ * PARSER
  * [x] print statement
  * [x] variable declaration & assignment
  * [x] parse arithmetic expressions
  * [x] parse relational expressions
  * [ ] if-else statement
  * 
- * [x] run code
- * [x] display output
- * [x] display status
+ * RUN CODE
+ * [ ] display output
+ * [ ] display status
  */
 public final class GUI_main extends javax.swing.JFrame {
 
@@ -823,43 +825,45 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // RUNNING THE PROGRAM
     void onRunPressed() {
-        String sourceCode = getSelectedTextPane().getText();
+        // String sourceCode = getSelectedTextPane().getText();
 
-        HashMap<String, Stack> compiledCode = MyCodeCompiler.compileProgram(sourceCode);
+        // HashMap<String, Stack> compiledCode =
+        // MyCodeCompiler.compileProgram(sourceCode);
 
-        Stack<HashMap<String, Object>> vars = compiledCode.get("VARS");
-        Stack<HashMap<String, Object>> errs = compiledCode.get("ERRS");
-        Stack<HashMap<String, Object>> prnt = compiledCode.get("PRNT");
+        // Stack<HashMap<String, Object>> vars = compiledCode.get("VARS");
+        // Stack<HashMap<String, Object>> errs = compiledCode.get("ERRS");
+        // Stack<HashMap<String, Object>> prnt = compiledCode.get("PRNT");
 
-        if (errs.isEmpty()) {
-            tpn_output.setText("""
-                    --- no errors found ---
-                     -------------------------------------------
-                        BUILD SUCCESS
-                     -------------------------------------------
-                    """);
-            tpn_status.setText("[STATUS]: NO ERRORS found in program.\n");
+        // if (errs.isEmpty()) {
+        // tpn_output.setText("""
+        // --- no errors found ---
+        // -------------------------------------------
+        // BUILD SUCCESS
+        // -------------------------------------------
+        // """);
+        // tpn_status.setText("[STATUS]: NO ERRORS found in program.\n");
 
-            for (HashMap hm : prnt) {
-                tpn_output.setText(tpn_output.getText() + "\n" + hm.get("TEXT"));
-            }
-            for (HashMap hm : vars) {
-                tpn_status.setText(tpn_status.getText() + "\n" + hm);
-            }
-        } else {
-            for (HashMap hm : errs) {
-                tpn_output.setText("""
-                        --- errors found in program ---
-                         -------------------------------------------
-                            BUILD FAILED
-                         -------------------------------------------
-                        """);
-                tpn_status.setText("[STATUS]: ERRORS found in program.\n");
+        // for (HashMap hm : prnt) {
+        // tpn_output.setText(tpn_output.getText() + "\n" + hm.get("TEXT"));
+        // }
+        // for (HashMap hm : vars) {
+        // tpn_status.setText(tpn_status.getText() + "\n" + hm);
+        // }
+        // } else {
+        // for (HashMap hm : errs) {
+        // tpn_output.setText("""
+        // --- errors found in program ---
+        // -------------------------------------------
+        // BUILD FAILED
+        // -------------------------------------------
+        // """);
+        // tpn_status.setText("[STATUS]: ERRORS found in program.\n");
 
-                tpn_status.setText(
-                        tpn_status.getText() + "\n" + String.format("+ <ln %d>\t%s", hm.get("LNUM"), hm.get("ERROR")));
-            }
-        }
+        // tpn_status.setText(
+        // tpn_status.getText() + "\n" + String.format("+ <ln %d>\t%s", hm.get("LNUM"),
+        // hm.get("ERROR")));
+        // }
+        // }
     }
 
     // MENU: FILE
