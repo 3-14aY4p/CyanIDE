@@ -70,7 +70,7 @@ FEATURE LIST:
     [x] text handling
         [x] proper tabulation
         [x] * mark file with changes
-        [?] undo & redo text            // FIXME: Undos initial text after opening files
+        [?] undo & redo text            // FIXME: Undos initial text and styles
         [x] syntax highlighter
     [x] file handling
         [x] create new file
@@ -86,7 +86,6 @@ FEATURE LIST:
     [ ] parser
         [x] print statement
         [x] variable declaration & assignment
-        [ ] variable re-assignment
         [x] parse arithmetic expressions
         [x] parse relational expressions
         [ ] if-else statement
@@ -692,54 +691,6 @@ public final class GUI_main extends javax.swing.JFrame {
         }
     }
 
-    private void displayFiles() {
-        SwingWorker<DefaultMutableTreeNode, Void> worker
-                = new SwingWorker<DefaultMutableTreeNode, Void>() {
-
-            @Override
-            protected DefaultMutableTreeNode doInBackground() {
-                // Create root node
-                DefaultMutableTreeNode root
-                        = new DefaultMutableTreeNode("My Computer");
-
-                // Get computer drives
-                File[] drives = File.listRoots();
-                if (drives != null) {
-                    for (File drive : drives) {
-                        DefaultMutableTreeNode driveNode = new DefaultMutableTreeNode(drive);
-                        root.add(driveNode);
-
-                        // Load actual folders
-                        loadDirectories(drive, driveNode);
-                    }
-                }
-                return root;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    // Get completed folder structure
-                    DefaultMutableTreeNode root = get();
-
-                    // Update existing JTree
-                    treeModel.setRoot(root);
-
-                    fileTree.expandRow(0);
-
-                    fileTree.revalidate();
-                    fileTree.repaint();
-                } catch (InterruptedException | ExecutionException e) {
-                    JOptionPane.showMessageDialog(
-                            GUI_main.this,
-                            "Error loading folders: " + e.getMessage()
-                    );
-                }
-            }
-        };
-        worker.execute();
-    }
-
     // FILE HANDLING
     void openFile(File file) {
         createTab(file.getName(), false);
@@ -747,18 +698,17 @@ public final class GUI_main extends javax.swing.JFrame {
 
         try {
             FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            String line;
-
-            textPane.setText("");
-
-            while ((line = br.readLine()) != null) {
-                textPane.setText(
-                        textPane.getText().stripLeading() + "\n" + line
-                );
+            try (BufferedReader br = new BufferedReader(fr)) {
+                String line;
+                
+                textPane.setText("");
+                
+                while ((line = br.readLine()) != null) {
+                    textPane.setText(
+                            textPane.getText().stripLeading() + "\n" + line
+                    );
+                }
             }
-
-            br.close();
 
             filepathCache.add(file.getPath());
         } catch (IOException e) {
@@ -893,7 +843,7 @@ public final class GUI_main extends javax.swing.JFrame {
         new GUI_options().setVisible(true);
     }
 
-    // TODO: RUNNING THE PROGRAM
+    // RUNNING THE PROGRAM
     void onRunPressed() {
         String sourceCode = getSelectedTextPane().getText();
 

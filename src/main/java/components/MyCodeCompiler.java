@@ -18,7 +18,7 @@ public class MyCodeCompiler {
 
     final static double ERRORCODE = Double.MAX_VALUE - Double.MAX_VALUE * 2;
 
-    // BNF VARGRAMMAR STUFFS
+    // BNF GRAMMAR STUFFS
     final static String IDENT = "[A-Za-z_][A-Za-z0-9_]*";
 
     final static String INTEGER = "-?[0-9]+";
@@ -26,13 +26,6 @@ public class MyCodeCompiler {
     final static String STRING = "\"[^\"\\r\\n]*\"";
     final static String BOOLEAN = "true|false";
 
-    /*
-    <  :
-    << : <=
-    >  :
-    >> : >=
-    <> : !=
-     */
     final static String OPRT = "(\\+|-|\\*|/|<|>|<<|>>|<>)";
     final static String EXPR = "("
             + "(" + INTEGER + "|" + DECIMAL + "|" + IDENT + ")"
@@ -53,10 +46,14 @@ public class MyCodeCompiler {
             + EXPR + "|"
             + NULL + ")";
 
-    final static String VARGRAMMAR
-            = "\\s*" + DTYPE + "\\s+"
+    final static String VARGRAMMAR = "\\s*" + DTYPE + "\\s+"
             + "(" + IDENT + ")\\s*<-\\s*"
             + "(" + VALUE + ")\\s*;\\s*";
+
+    final static String ifPart = "^if\\s*\\((.*)\\)\\s*:\\s*$";
+    final static String elifPart = "^elif\\s*\\((.*)\\)\\s*:\\s*$";
+    final static String elsePart = "^else\\s*:\\s*$";
+    final static String endifPart = "^endif$";
 
     final static String COMMENTPREFIX = ">>";
 
@@ -74,41 +71,27 @@ public class MyCodeCompiler {
         for (String l : lines) {
             int lnum = lines.indexOf(l) + 1;
             l = l.strip();
+
             HashMap<String, Object> hashMap = new HashMap<>();
 
-            if (!(l.isBlank() || l.startsWith(COMMENTPREFIX) || l.startsWith("..."))) {
-                if (l.matches("^" + DTYPE + ".*")) {
-                    hashMap = parseVariableAssignment(lnum, l, vars);
-                    if (hashMap.containsKey("ERROR")) {
-                        hashMap.put("LNUM", lnum);
-                        errs.add(hashMap);
-                    } else {
-                        hashMap.put("LNUM", lnum);
-                        vars.add(hashMap);
-                    }
-                } else if (l.matches("^echo.*")) {
-                    hashMap = parsePrintStatement(lnum, l, vars);
-                    if (hashMap.containsKey("ERROR")) {
-                        hashMap.put("LNUM", lnum);
-                        errs.add(hashMap);
-                    } else {
-                        hashMap.put("LNUM", lnum);
-                        prnt.add(hashMap);
-                    }
-                } else if (l.matches("(^if.*|.*}*elif.*|.*}*else.*|^endif$)")) {
-                    if (l.matches("(^if.*)")) {
-                        HashMap<String, Stack<HashMap<String, Object>>> ifResults = parseIfElseStatement(lnum, lines, vars);
+            boolean isInIf = false;
+            if (l.matches(ifPart)) {
+                isInIf = true;
+            } else if (l.matches(endifPart)) {
+                isInIf = false;
+            }
 
-                        vars.addAll(ifResults.get("VARS"));
-                        errs.addAll(ifResults.get("ERRS"));
-                        prnt.addAll(ifResults.get("PRNT"));
-                    }
-                } else {
-                    hashMap.put("ERROR", "INVALID SYNTAX: Illegal start of expression.");
-                    hashMap.put("LNUM", lnum);
+            hashMap = parseLine(lnum, l, vars, isInIf);
 
-                    errs.add(hashMap);
-                }
+            if (hashMap.containsKey("TYPE") && hashMap.get("TYPE").equals("VAR")) {
+                vars.add(hashMap);
+            } else if (hashMap.containsKey("TYPE") && hashMap.get("TYPE").equals("PRN")) {
+                prnt.add(hashMap);
+            } else if (hashMap.containsKey("IFST")) {
+                // TODO: extract results
+
+            } else if (hashMap.containsKey("ERROR")) {
+                errs.add(hashMap);
             }
         }
 
@@ -119,7 +102,39 @@ public class MyCodeCompiler {
         return finalHashMap;
     }
 
-    public static HashMap<String, Object> parsePrintStatement(int lnum, String line, Stack<HashMap<String, Object>> variableContainer) {
+    public static HashMap<String, Object> parseLine(int lnum, String l, Stack<HashMap<String, Object>> vars, boolean isInIf) {
+        HashMap<String, Object> hashMap = new HashMap<>();
+
+        if (!(l.isBlank() || l.startsWith(COMMENTPREFIX) || l.startsWith("..."))) {
+            if (l.matches("^" + DTYPE + ".*")) {
+                hashMap = parseVariableAssignment(lnum, l, vars);
+                if (hashMap.containsKey("ERROR")) {
+                    hashMap.put("LNUM", lnum);
+                } else {
+                    hashMap.put("LNUM", lnum);
+                    hashMap.put("TYPE", "VAR");
+                }
+            } else if (l.matches("^echo.*")) {
+                hashMap = parsePrintStatement(lnum, l, vars);
+                if (hashMap.containsKey("ERROR")) {
+                    hashMap.put("LNUM", lnum);
+                } else {
+                    hashMap.put("LNUM", lnum);
+                    hashMap.put("TYPE", "PRN");
+                }
+            } else if (isInIf) {
+                hashMap.put("IFST", parseIfElseStatement(lnum, null, vars));
+            } else {
+                hashMap.put("ERROR", "INVALID SYNTAX: Illegal start of expression.");
+                hashMap.put("LNUM", lnum);
+            }
+        }
+
+        return hashMap;
+    }
+
+    public static HashMap<String, Object> parsePrintStatement(int lnum, String line,
+            Stack<HashMap<String, Object>> variableContainer) {
         // dictionary to be returned
         HashMap<String, Object> valueMap = new HashMap<>();
 
@@ -174,7 +189,7 @@ public class MyCodeCompiler {
                 value = Integer.toString((int) res);
             }
 
-            if (value.contains(Double.toString(ERRORCODE))) {
+            if (value.contains(String.valueOf(ERRORCODE))) {
                 valueMap.put("ERROR", "INVALID SYNTAX: Invalid 'expression'.");
                 return valueMap;
             } else {
@@ -200,7 +215,8 @@ public class MyCodeCompiler {
         return valueMap;
     }
 
-    public static HashMap<String, Object> parseVariableAssignment(int lnum, String line, Stack<HashMap<String, Object>> variableContainer) {
+    public static HashMap<String, Object> parseVariableAssignment(int lnum, String line,
+            Stack<HashMap<String, Object>> variableContainer) {
         // dictionary to be returned
         HashMap<String, Object> valueMap = new HashMap<>();
 
@@ -363,26 +379,35 @@ public class MyCodeCompiler {
     }
 
     // TODO: parse if-else statement
-    public static HashMap<String, Stack<HashMap<String, Object>>> parseIfElseStatement(int lnum, Stack<String> lines, Stack<HashMap<String, Object>> variableContainer) {
+    public static HashMap<String, HashMap<String, Stack<HashMap<String, Object>>>> parseIfElseStatement(int lnum,
+            Stack<String> lines, Stack<HashMap<String, Object>> variableContainer) {
         // dictionary to be returned
-        HashMap<String, Stack<HashMap<String, Object>>> valueMap = new HashMap<>();
+        HashMap<String, HashMap<String, Stack<HashMap<String, Object>>>> finalMap = new HashMap<>();
 
+        HashMap<String, Stack<HashMap<String, Object>>> valueMap = new HashMap<>();
         Stack<HashMap<String, Object>> vars = new Stack<>();
         Stack<HashMap<String, Object>> errs = new Stack<>();
         Stack<HashMap<String, Object>> prnt = new Stack<>();
 
-        String ifPart = "^if\\s*\\((.*)\\)\\s*:\\s*$";
-        String elifPart = "^elif\\s*\\((.*)\\)\\s*:\\s*$";
-        String elsePart = "^else\\s*:\\s*$";
+        boolean hasIf = false;
+        boolean hasEl = false;
+
+        for (int i = lnum - 1; i < lines.size(); i++) {
+            if (lines.elementAt(i).equals(endifPart) && hasIf) {
+                break;
+            }
+
+            
+        }
 
         valueMap.put("VARS", vars);
         valueMap.put("ERRS", errs);
         valueMap.put("PRNT", prnt);
 
-        return valueMap;
+        return finalMap;
     }
 
-    // TODO: parse bool statement
+    // TODO: parse logical statements
     public static double evaluateExpression(String expression, Stack<HashMap<String, Object>> variableContainer) {
         String fString = expression;
         for (String s : expression.split(OPRT)) {
@@ -393,7 +418,8 @@ public class MyCodeCompiler {
                     String varIdent = (String) hm.get("IDENT");
                     String varValue = (String) hm.get("VALUE");
 
-                    if (v.equals(varIdent) && (varDtype.equals("int") || varDtype.equals("dec") || varDtype.equals("bool"))) {
+                    if (v.equals(varIdent)
+                            && (varDtype.equals("int") || varDtype.equals("dec") || varDtype.equals("bool"))) {
                         if (varDtype.equals("bool")) {
                             int b;
                             if (varValue.equals("true")) {
@@ -417,7 +443,8 @@ public class MyCodeCompiler {
         return parseExpression(fString);
     }
 
-    // SOURCE: https://www.geeksforgeeks.org/java/how-to-evaluate-math-expression-given-in-STRING-form-in-java/
+    // SOURCE:
+    // https://www.geeksforgeeks.org/java/how-to-evaluate-math-expression-given-in-STRING-form-in-java/
     // Function to evaluate a mathematical expression given in STRING form
     public static double parseExpression(String expression) {
         try {
@@ -440,7 +467,7 @@ public class MyCodeCompiler {
                     // Continue collecting digits and the DECIMAL point to form a number
                     while (i < tokens.length
                             && (Character.isDigit(tokens[i])
-                            || tokens[i] == '.')) {
+                                    || tokens[i] == '.')) {
                         sb.append(tokens[i]);
                         i++;
                     }
@@ -480,7 +507,8 @@ public class MyCodeCompiler {
                     // increment in the loop
                 } else if (tokens[i] == '+' || tokens[i] == '-'
                         || tokens[i] == '*' || tokens[i] == '/') {
-                    // If the character is an operator, pop and apply operators with higher precedence
+                    // If the character is an operator, pop and apply operators with higher
+                    // precedence
                     while (!operators.isEmpty()
                             && hasPrecedence(String.valueOf(tokens[i]),
                                     operators.peek())) {
@@ -507,7 +535,7 @@ public class MyCodeCompiler {
         }
     }
 
-    // Function to check if operator1 has higher precedence than operator2   
+    // Function to check if operator1 has higher precedence than operator2
     private static boolean hasPrecedence(String operator1, String operator2) {
         if (operator2 == "(" || operator2 == ")") {
             return false;
@@ -515,8 +543,8 @@ public class MyCodeCompiler {
         return (operator1 != "*" && operator1 != "/")
                 || (operator2 != "+" && operator2 != "-")
                 || (operator2 != "<" && operator2 != "<<"
-                && operator2 != ">" && operator2 != ">>"
-                && operator2 != "<>");
+                        && operator2 != ">" && operator2 != ">>"
+                        && operator2 != "<>");
     }
 
     // Function to apply the operator to two operands
