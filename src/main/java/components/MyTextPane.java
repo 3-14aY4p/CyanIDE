@@ -40,7 +40,7 @@ public class MyTextPane extends JTextPane implements UndoableEditListener {
     private final JButton REDO_BTN;
 
     // syntax reference/regex
-    final static String SPCCH = "\\+|-|\\*|/|=|>|<|==|>=|<=|!=|<-";
+    final static String SPCCH = "\\+|-|\\*|/|=|>|<|>>|<<|<>|><|<-";
     final static String SPCVL = "null|true|false";
     final static String DTYPE = "int|dec|str|bool";
     final static String CONDS = "if|elif|else|endif";

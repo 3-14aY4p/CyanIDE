@@ -5,6 +5,7 @@
 package GUI;
 
 // custom packages
+import compiler.*;
 import components.*;
 
 import java.awt.Component;
@@ -37,62 +38,61 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
-
 /**
  *
  * @author tianmei
  */
 
 /*
- MINIMUM REQUIREMENTS:
- - menu bar
- - tool bar
- - open existing text/code
- - save code with desired file ext.
- - multiple tabs feature
- - line numbering
- - code/syntax highlighter
- - code parsing for output
-   + print statement
-   + variable declaration
-   + variable assignment
-   + evaluate expressions
-   + if-else statement
-
-FEATURE LIST:
-    [x] get session/user's name
-    [x] get OS & determine font
-    [x] get previous session's user 
-        config (i.e. theme/LAF)
-    [x] tab handling
-        [x] new tab (on new and open file)
-        [x] close tab (double-click LMB)
-    [x] text handling
-        [x] proper tabulation
-        [x] * mark file with changes
-        [?] undo & redo text            // FIXME: Undos initial text and styles
-        [x] syntax highlighter
-    [x] file handling
-        [x] create new file
-        [x] open file
-            [x] filepath cache (if a file is already open, 
-                navigate to it instead of opening new tab)
-        [x] save file
-        [x] save file as
-    [x] dir navigator
-        [x] open folder/directory
-        [x] display subfolders & files
-        [x] open file on double-click
-    [ ] parser
-        [x] print statement
-        [x] variable declaration & assignment
-        [x] parse arithmetic expressions
-        [x] parse relational expressions
-        [ ] if-else statement
-
-    [x] run code
-        [x] display output
-        [x] display status
+ * MINIMUM REQUIREMENTS:
+ * - menu bar
+ * - tool bar
+ * - open existing text/code
+ * - save code with desired file ext.
+ * - multiple tabs feature
+ * - line numbering
+ * - code/syntax highlighter
+ * - code parsing for output
+ * + print statement
+ * + variable declaration
+ * + variable assignment
+ * + evaluate expressions
+ * + if-else statement
+ * 
+ * FEATURE LIST:
+ * [x] get session/user's name
+ * [x] get OS & determine font
+ * [x] get previous session's user
+ * config (i.e. theme/LAF)
+ * [x] tab handling
+ * [x] new tab (on new and open file)
+ * [x] close tab (double-click LMB)
+ * [x] text handling
+ * [x] proper tabulation
+ * [x] * mark file with changes
+ * [?] undo & redo text // FIXME: Undos initial text and styles
+ * [x] syntax highlighter
+ * [x] file handling
+ * [x] create new file
+ * [x] open file
+ * [x] filepath cache (if a file is already open,
+ * navigate to it instead of opening new tab)
+ * [x] save file
+ * [x] save file as
+ * [x] dir navigator
+ * [x] open folder/directory
+ * [x] display subfolders & files
+ * [x] open file on double-click
+ * [ ] parser
+ * [x] print statement
+ * [x] variable declaration & assignment
+ * [x] parse arithmetic expressions
+ * [x] parse relational expressions
+ * [ ] if-else statement
+ * 
+ * [x] run code
+ * [x] display output
+ * [x] display status
  */
 public final class GUI_main extends javax.swing.JFrame {
 
@@ -101,8 +101,8 @@ public final class GUI_main extends javax.swing.JFrame {
     private static final String USERNAME = System.getProperty("user.name");
 
     // for font defaults
-    String fontFamily;      // determined by OS; i.e. Adwaita Mono for linux comp
-    Font defaultFont;       // used by all JEditorPanes/JTextPanes for uniformity
+    String fontFamily; // determined by OS; i.e. Adwaita Mono for linux comp
+    Font defaultFont; // used by all JEditorPanes/JTextPanes for uniformity
 
     // for file handling
     final String customFileExt = ".rtxt";
@@ -130,8 +130,8 @@ public final class GUI_main extends javax.swing.JFrame {
         fileTree.setShowsRootHandles(true);
 
         // revert components into their clean state
-        tbpn_editor.removeAll();    // removes sample editor pane 
-        filepathCache.clear();      // this just ensures it clear
+        tbpn_editor.removeAll(); // removes sample editor pane
+        filepathCache.clear(); // this just ensures it clear
 
         // initialize default font
         if (OS.matches("^windows.*")) {
@@ -150,45 +150,9 @@ public final class GUI_main extends javax.swing.JFrame {
         JEditorPane welcomeTab = getSelectedTextPane();
         welcomeTab.setText(
                 welcomeTab.getText() + "\n"
-                + """  
-                >> this is a comment
-                  
-                >> this is a print statement
-                echo("hello world");
-                  
-                >> this language uses only 4 datatypes:
-                >> int  : integer
-                >> dec  : decimal
-                >> str  : string
-                >> bool : boolean
-                  
-                >> this is how you declare a variable
-                int x <- 5;
-                  
-                >> you can use arithmetic and relational operations
-                >> note that in relational operators,
-                  >> != has been changed to <>
-                  >> <= has been changed to <<
-                  >> >= has been changed to >>
-                >> please do also note that logical expressions are
-                >> not yet available/implemented
-                  
-                int y <- x - 3;
-                echo(y + 4 > 5);
-                  
-                >> this is how you write conditionals
-                if (condition 1):
-                  ...
-                elif (condition 2):
-                  ...
-                elif (condition 3):
-                  ...
-                else:
-                  ...
-                endif
-                  
-                  """
-        );
+                        + """
+                                >> this is a comment.
+                                  """);
         resetTabIcon();
     }
 
@@ -198,20 +162,23 @@ public final class GUI_main extends javax.swing.JFrame {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         pnl_toolbar = new javax.swing.JPanel();
         btn_new = new javax.swing.JButton();
         btn_open = new javax.swing.JButton();
         btn_save = new javax.swing.JButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(24, 0), new java.awt.Dimension(24, 0), new java.awt.Dimension(32767, 0));
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(24, 0), new java.awt.Dimension(24, 0),
+                new java.awt.Dimension(32767, 0));
         btn_undo = new javax.swing.JButton();
         btn_redo = new javax.swing.JButton();
         btn_cut = new javax.swing.JButton();
         btn_copy = new javax.swing.JButton();
         btn_paste = new javax.swing.JButton();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(54, 0), new java.awt.Dimension(54, 0), new java.awt.Dimension(32767, 0));
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(54, 0), new java.awt.Dimension(54, 0),
+                new java.awt.Dimension(32767, 0));
         btn_run = new javax.swing.JButton();
         btn_debug = new javax.swing.JButton();
         btn_stop = new javax.swing.JButton();
@@ -356,7 +323,8 @@ public final class GUI_main extends javax.swing.JFrame {
         fileTree.setFont(new java.awt.Font("sansserif", 0, 14)); // NOI18N
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("RootFolder");
         javax.swing.tree.DefaultMutableTreeNode treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("SubFolder1");
-        javax.swing.tree.DefaultMutableTreeNode treeNode3 = new javax.swing.tree.DefaultMutableTreeNode("fileSample.txt");
+        javax.swing.tree.DefaultMutableTreeNode treeNode3 = new javax.swing.tree.DefaultMutableTreeNode(
+                "fileSample.txt");
         treeNode2.add(treeNode3);
         treeNode1.add(treeNode2);
         treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("SubFolder2");
@@ -410,39 +378,45 @@ public final class GUI_main extends javax.swing.JFrame {
 
         mn_file.setText("File");
 
-        mni_new.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_new.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_new.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/new.png"))); // NOI18N
         mni_new.setText("New");
         mni_new.addActionListener(this::mni_newActionPerformed);
         mn_file.add(mni_new);
         mn_file.add(jSeparator1);
 
-        mni_openFile.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_openFile.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_openFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/open.png"))); // NOI18N
         mni_openFile.setText("Open file");
         mni_openFile.addActionListener(this::mni_openFileActionPerformed);
         mn_file.add(mni_openFile);
 
-        mni_openFolder.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_openFolder.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_openFolder.setText("Open folder");
         mni_openFolder.addActionListener(this::mni_openFolderActionPerformed);
         mn_file.add(mni_openFolder);
         mn_file.add(jSeparator2);
 
-        mni_save.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_save.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_save.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save.png"))); // NOI18N
         mni_save.setText("Save");
         mni_save.addActionListener(this::mni_saveActionPerformed);
         mn_file.add(mni_save);
 
-        mni_saveAs.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_saveAs.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_saveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/save-as.png"))); // NOI18N
         mni_saveAs.setText("Save as");
         mni_saveAs.addActionListener(this::mni_saveAsActionPerformed);
         mn_file.add(mni_saveAs);
         mn_file.add(jSeparator3);
 
-        mni_exit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.SHIFT_DOWN_MASK));
+        mni_exit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q,
+                java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.SHIFT_DOWN_MASK));
         mni_exit.setText("Exit");
         mni_exit.addActionListener(this::mni_exitActionPerformed);
         mn_file.add(mni_exit);
@@ -451,37 +425,43 @@ public final class GUI_main extends javax.swing.JFrame {
 
         mn_edit.setText("Edit");
 
-        mni_undo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_undo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_undo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/undo.png"))); // NOI18N
         mni_undo.setText("Undo");
         mn_edit.add(mni_undo);
 
-        mni_redo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_redo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_redo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/redo.png"))); // NOI18N
         mni_redo.setText("Redo");
         mn_edit.add(mni_redo);
         mn_edit.add(jSeparator4);
 
-        mni_cut.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_cut.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_cut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cut.png"))); // NOI18N
         mni_cut.setText("Cut");
         mni_cut.addActionListener(this::mni_cutActionPerformed);
         mn_edit.add(mni_cut);
 
-        mni_copy.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_copy.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_copy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/copy.png"))); // NOI18N
         mni_copy.setText("Copy");
         mni_copy.addActionListener(this::mni_copyActionPerformed);
         mn_edit.add(mni_copy);
 
-        mni_paste.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_paste.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_paste.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/paste.png"))); // NOI18N
         mni_paste.setText("Paste");
         mni_paste.addActionListener(this::mni_pasteActionPerformed);
         mn_edit.add(mni_paste);
         mn_edit.add(jSeparator5);
 
-        mni_options.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_options.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_options.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/options.png"))); // NOI18N
         mni_options.setText("Options");
         mni_options.addActionListener(this::mni_optionsActionPerformed);
@@ -513,13 +493,15 @@ public final class GUI_main extends javax.swing.JFrame {
 
         mn_view.setText("View");
 
-        mni_zoomIn.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_zoomIn.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_zoomIn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/zoom-in.png"))); // NOI18N
         mni_zoomIn.setText("Zoom in");
         mni_zoomIn.addActionListener(this::mni_zoomInActionPerformed);
         mn_view.add(mni_zoomIn);
 
-        mni_zoomOut.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mni_zoomOut.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mni_zoomOut.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/zoom-out.png"))); // NOI18N
         mni_zoomOut.setText("Zoom out");
         mni_zoomOut.addActionListener(this::mni_zoomOutActionPerformed);
@@ -563,11 +545,11 @@ public final class GUI_main extends javax.swing.JFrame {
         if (addHeader) {
             String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             tabView.setText(String.format("""
-        >> Author     : %s
-        >> Filename   : %s
-        >> Date       : %s
-                                      
-        """, USERNAME, tabName, today));
+                    >> Author     : %s
+                    >> Filename   : %s
+                    >> Date       : %s
+
+                    """, USERNAME, tabName, today));
         }
 
         // adding it here 'cause somehow adding it
@@ -630,14 +612,12 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // TREE HANDLING
     private void loadSelectedFolder(File folder) {
-        SwingWorker<DefaultMutableTreeNode, Void> worker
-                = new SwingWorker<DefaultMutableTreeNode, Void>() {
+        SwingWorker<DefaultMutableTreeNode, Void> worker = new SwingWorker<DefaultMutableTreeNode, Void>() {
 
             @Override
             protected DefaultMutableTreeNode doInBackground() {
                 // Create root node using selected folder
-                DefaultMutableTreeNode root
-                        = new DefaultMutableTreeNode(folder);
+                DefaultMutableTreeNode root = new DefaultMutableTreeNode(folder);
                 // Load subfolders and files
                 loadDirectories(folder, root);
 
@@ -662,8 +642,7 @@ public final class GUI_main extends javax.swing.JFrame {
                 } catch (InterruptedException | ExecutionException e) {
                     JOptionPane.showMessageDialog(
                             GUI_main.this,
-                            "Error loading folder: " + e.getMessage()
-                    );
+                            "Error loading folder: " + e.getMessage());
                 }
             }
         };
@@ -700,13 +679,12 @@ public final class GUI_main extends javax.swing.JFrame {
             FileReader fr = new FileReader(file);
             try (BufferedReader br = new BufferedReader(fr)) {
                 String line;
-                
+
                 textPane.setText("");
-                
+
                 while ((line = br.readLine()) != null) {
                     textPane.setText(
-                            textPane.getText().stripLeading() + "\n" + line
-                    );
+                            textPane.getText().stripLeading() + "\n" + line);
                 }
             }
 
@@ -730,7 +708,8 @@ public final class GUI_main extends javax.swing.JFrame {
     void saveFileAs() {
         JFileChooser fileChooser = new JFileChooser();
 
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt.replace(".", "")));
+        fileChooser.setFileFilter(
+                new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt.replace(".", "")));
         fileChooser.setSelectedFile(new File(getSelectedTabTitle())); // Default filename
 
         fileChooser.setDialogTitle("Save file as");
@@ -769,7 +748,8 @@ public final class GUI_main extends javax.swing.JFrame {
 
     void onOpenFilePressed() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt.replace(".", "")));
+        fileChooser.setFileFilter(
+                new FileNameExtensionFilter("Text Files", "txt", "text", customFileExt.replace(".", "")));
         fileChooser.setDialogTitle("Open file");
 
         int choice = fileChooser.showOpenDialog(null);
@@ -793,11 +773,9 @@ public final class GUI_main extends javax.swing.JFrame {
         JFileChooser fileChooser = new JFileChooser();
 
         fileChooser.setFileSelectionMode(
-                JFileChooser.DIRECTORIES_ONLY
-        );
+                JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setCurrentDirectory(
-                new File(System.getProperty("user.home"))
-        );
+                new File(System.getProperty("user.home")));
 
         fileChooser.setAcceptAllFileFilterUsed(false);
 
@@ -847,20 +825,19 @@ public final class GUI_main extends javax.swing.JFrame {
     void onRunPressed() {
         String sourceCode = getSelectedTextPane().getText();
 
-        HashMap<String, Stack> outputHm
-                = MyCodeCompiler.compileProgram(sourceCode);
+        HashMap<String, Stack> compiledCode = MyCodeCompiler.compileProgram(sourceCode);
 
-        Stack<HashMap<String, Object>> vars = outputHm.get("VARS");
-        Stack<HashMap<String, Object>> errs = outputHm.get("ERRS");
-        Stack<HashMap<String, Object>> prnt = outputHm.get("PRNT");
+        Stack<HashMap<String, Object>> vars = compiledCode.get("VARS");
+        Stack<HashMap<String, Object>> errs = compiledCode.get("ERRS");
+        Stack<HashMap<String, Object>> prnt = compiledCode.get("PRNT");
 
         if (errs.isEmpty()) {
             tpn_output.setText("""
-                --- no errors found ---
-                 -------------------------------------------
-                    BUILD SUCCESS
-                 -------------------------------------------
-                """);
+                    --- no errors found ---
+                     -------------------------------------------
+                        BUILD SUCCESS
+                     -------------------------------------------
+                    """);
             tpn_status.setText("[STATUS]: NO ERRORS found in program.\n");
 
             for (HashMap hm : prnt) {
@@ -872,42 +849,41 @@ public final class GUI_main extends javax.swing.JFrame {
         } else {
             for (HashMap hm : errs) {
                 tpn_output.setText("""
-                    --- errors found in program ---
-                     -------------------------------------------
-                        BUILD FAILED
-                     -------------------------------------------
-                    """);
+                        --- errors found in program ---
+                         -------------------------------------------
+                            BUILD FAILED
+                         -------------------------------------------
+                        """);
                 tpn_status.setText("[STATUS]: ERRORS found in program.\n");
 
                 tpn_status.setText(
-                        tpn_status.getText() + "\n" + String.format("+ <ln %d>\t%s", hm.get("LNUM"), hm.get("ERROR"))
-                );
+                        tpn_status.getText() + "\n" + String.format("+ <ln %d>\t%s", hm.get("LNUM"), hm.get("ERROR")));
             }
         }
     }
 
     // MENU: FILE
-    private void mni_newActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_newActionPerformed
+    private void mni_newActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_newActionPerformed
         onNewFilePressed();
-    }//GEN-LAST:event_mni_newActionPerformed
+    }// GEN-LAST:event_mni_newActionPerformed
 
-    private void mni_openFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_openFileActionPerformed
+    private void mni_openFileActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_openFileActionPerformed
         onOpenFilePressed();
-    }//GEN-LAST:event_mni_openFileActionPerformed
+    }// GEN-LAST:event_mni_openFileActionPerformed
 
-    private void mni_openFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_openFolderActionPerformed
+    private void mni_openFolderActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_openFolderActionPerformed
         onOpenFolderPressed();
-    }//GEN-LAST:event_mni_openFolderActionPerformed
+    }// GEN-LAST:event_mni_openFolderActionPerformed
 
-    private void mni_saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_saveActionPerformed
+    private void mni_saveActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_saveActionPerformed
         onSavePressed();
-    }//GEN-LAST:event_mni_saveActionPerformed
+    }// GEN-LAST:event_mni_saveActionPerformed
 
-    private void mni_saveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_saveAsActionPerformed
+    private void mni_saveAsActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_saveAsActionPerformed
         onSaveAsPressed();
-    }//GEN-LAST:event_mni_saveAsActionPerformed
+    }// GEN-LAST:event_mni_saveAsActionPerformed
 
-    private void mni_exitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_exitActionPerformed
+    private void mni_exitActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_exitActionPerformed
         if (tbpn_editor.getComponents().length > 0) {
             int choice = JOptionPane.showConfirmDialog(this,
                     "Do you want to exit the application?\n(Does not save progress)",
@@ -917,86 +893,87 @@ public final class GUI_main extends javax.swing.JFrame {
                 System.exit(0);
             }
         }
-    }//GEN-LAST:event_mni_exitActionPerformed
+    }// GEN-LAST:event_mni_exitActionPerformed
 
     // MENU: EDIT
-    private void mni_cutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_cutActionPerformed
+    private void mni_cutActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_cutActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_mni_cutActionPerformed
+    }// GEN-LAST:event_mni_cutActionPerformed
 
-    private void mni_copyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_copyActionPerformed
+    private void mni_copyActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_copyActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_mni_copyActionPerformed
+    }// GEN-LAST:event_mni_copyActionPerformed
 
-    private void mni_pasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_pasteActionPerformed
+    private void mni_pasteActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_pasteActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_mni_pasteActionPerformed
+    }// GEN-LAST:event_mni_pasteActionPerformed
 
-    private void mni_optionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_optionsActionPerformed
+    private void mni_optionsActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_optionsActionPerformed
         onOptionsPressed();
-    }//GEN-LAST:event_mni_optionsActionPerformed
+    }// GEN-LAST:event_mni_optionsActionPerformed
 
     // MENU: RUN
-    private void mni_runActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_runActionPerformed
+    private void mni_runActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_runActionPerformed
         onRunPressed();
-    }//GEN-LAST:event_mni_runActionPerformed
+    }// GEN-LAST:event_mni_runActionPerformed
 
-    private void mni_debugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_debugActionPerformed
+    private void mni_debugActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_debugActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_mni_debugActionPerformed
+    }// GEN-LAST:event_mni_debugActionPerformed
 
-    private void mni_stopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_stopActionPerformed
+    private void mni_stopActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_stopActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_mni_stopActionPerformed
+    }// GEN-LAST:event_mni_stopActionPerformed
 
     // TOOL: FILE
-    private void btn_newActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_newActionPerformed
+    private void btn_newActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_newActionPerformed
         onNewFilePressed();
-    }//GEN-LAST:event_btn_newActionPerformed
+    }// GEN-LAST:event_btn_newActionPerformed
 
-    private void btn_openActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_openActionPerformed
+    private void btn_openActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_openActionPerformed
         onOpenFilePressed();
-    }//GEN-LAST:event_btn_openActionPerformed
+    }// GEN-LAST:event_btn_openActionPerformed
 
-    private void btn_saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_saveActionPerformed
+    private void btn_saveActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_saveActionPerformed
         onSavePressed();
-    }//GEN-LAST:event_btn_saveActionPerformed
+    }// GEN-LAST:event_btn_saveActionPerformed
 
     // TOOL: EDIT
-    private void btn_cutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_cutActionPerformed
+    private void btn_cutActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_cutActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_btn_cutActionPerformed
+    }// GEN-LAST:event_btn_cutActionPerformed
 
-    private void btn_copyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_copyActionPerformed
+    private void btn_copyActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_copyActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_btn_copyActionPerformed
+    }// GEN-LAST:event_btn_copyActionPerformed
 
-    private void btn_pasteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_pasteActionPerformed
+    private void btn_pasteActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_pasteActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_btn_pasteActionPerformed
+    }// GEN-LAST:event_btn_pasteActionPerformed
 
     // TOOL: RUN
-    private void btn_runActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_runActionPerformed
+    private void btn_runActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_runActionPerformed
         onRunPressed();
-    }//GEN-LAST:event_btn_runActionPerformed
+    }// GEN-LAST:event_btn_runActionPerformed
 
-    private void btn_debugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_debugActionPerformed
+    private void btn_debugActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_debugActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_btn_debugActionPerformed
+    }// GEN-LAST:event_btn_debugActionPerformed
 
-    private void btn_stopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_stopActionPerformed
+    private void btn_stopActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_stopActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_btn_stopActionPerformed
+    }// GEN-LAST:event_btn_stopActionPerformed
 
     // TREE INTERACTIONS
-    /*  ** SOME NOTES ON MOUSE CLICKS **
-     *  MOUSE BUTTON:
-     *   1 - left
-     *   2 - middle
-     *   3 - right
+    /*
+     * ** SOME NOTES ON MOUSE CLICKS **
+     * MOUSE BUTTON:
+     * 1 - left
+     * 2 - middle
+     * 3 - right
      */
 
-    private void fileItemClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileItemClicked
+    private void fileItemClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_fileItemClicked
         if (evt.getButton() == 1 && evt.getClickCount() == 2) {
             try {
                 String rawPath = fileTree.getSelectionPath().toString().replaceAll(", ", "/");
@@ -1029,10 +1006,10 @@ public final class GUI_main extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Folder path not found.");
             }
         }
-    }//GEN-LAST:event_fileItemClicked
+    }// GEN-LAST:event_fileItemClicked
 
     // TAB INTERACTIONS
-    private void onCloseTabClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onCloseTabClicked
+    private void onCloseTabClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_onCloseTabClicked
         if (evt.getButton() == 1 && evt.getClickCount() == 2 && tbpn_editor.getComponents().length > 0) {
             int index = tbpn_editor.getSelectedIndex();
 
@@ -1054,24 +1031,28 @@ public final class GUI_main extends javax.swing.JFrame {
                 }
             }
         }
-    }//GEN-LAST:event_onCloseTabClicked
+    }// GEN-LAST:event_onCloseTabClicked
 
-    private void mni_zoomInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_zoomInActionPerformed
+    private void mni_zoomInActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_zoomInActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_mni_zoomInActionPerformed
+    }// GEN-LAST:event_mni_zoomInActionPerformed
 
-    private void mni_zoomOutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mni_zoomOutActionPerformed
+    private void mni_zoomOutActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_mni_zoomOutActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_mni_zoomOutActionPerformed
+    }// GEN-LAST:event_mni_zoomOutActionPerformed
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+        // <editor-fold defaultstate="collapsed" desc=" Look and feel setting code
+        // (optional) ">
+        /*
+         * If Nimbus (introduced in Java SE 6) is not available, stay with the default
+         * look and feel.
+         * For details see
+         * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -1083,7 +1064,7 @@ public final class GUI_main extends javax.swing.JFrame {
         } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
             logger.log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
+        // </editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new GUI_main().setVisible(true));

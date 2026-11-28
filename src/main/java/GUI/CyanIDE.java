@@ -15,14 +15,14 @@ import javax.swing.LookAndFeel;
  *
  * @author tianmei
  */
-public class oxIDE {
+public class CyanIDE {
 
     public static void main(String[] args) {
         // Set FlatLaf look and feel
         File configFile = new File("src/main/resources/config.properties");
         String selectedLafTheme;
 
-        LookAndFeel selectedLAF = new FlatLightLaf();   // defaults to light mode
+        LookAndFeel selectedLAF = new FlatLightLaf(); // defaults to light mode
 
         try {
             try (FileReader fileReader = new FileReader(configFile)) {
