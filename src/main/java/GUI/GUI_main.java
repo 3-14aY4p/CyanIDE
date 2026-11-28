@@ -152,7 +152,7 @@ public final class GUI_main extends javax.swing.JFrame {
         JEditorPane welcomeTab = getSelectedTextPane();
         welcomeTab.setText(
                 welcomeTab.getText() + "\n"
-                        + """
+                + """
                                 >> this is a comment.
                                   """);
         resetTabIcon();
@@ -825,45 +825,45 @@ public final class GUI_main extends javax.swing.JFrame {
 
     // RUNNING THE PROGRAM
     void onRunPressed() {
-        // String sourceCode = getSelectedTextPane().getText();
+        String sourceCode = getSelectedTextPane().getText();
 
-        // HashMap<String, Stack> compiledCode =
-        // MyCodeCompiler.compileProgram(sourceCode);
+        HashMap<String, Stack> compiledCode
+                = MyCompiler.compileCode(sourceCode);
 
-        // Stack<HashMap<String, Object>> vars = compiledCode.get("VARS");
-        // Stack<HashMap<String, Object>> errs = compiledCode.get("ERRS");
-        // Stack<HashMap<String, Object>> prnt = compiledCode.get("PRNT");
+        Stack<HashMap<String, Object>> vars = compiledCode.get("VARS");
+        Stack<HashMap<String, Object>> errs = compiledCode.get("ERRS");
+        Stack<HashMap<String, Object>> prnt = compiledCode.get("PRNT");
 
-        // if (errs.isEmpty()) {
-        // tpn_output.setText("""
-        // --- no errors found ---
-        // -------------------------------------------
-        // BUILD SUCCESS
-        // -------------------------------------------
-        // """);
-        // tpn_status.setText("[STATUS]: NO ERRORS found in program.\n");
+        if (errs.isEmpty()) {
+            tpn_output.setText("""
+        --- no errors found ---
+        -------------------------------------------
+        BUILD SUCCESS
+        -------------------------------------------
+        """);
+            tpn_status.setText("[STATUS]: NO ERRORS found in program.\n");
 
-        // for (HashMap hm : prnt) {
-        // tpn_output.setText(tpn_output.getText() + "\n" + hm.get("TEXT"));
-        // }
-        // for (HashMap hm : vars) {
-        // tpn_status.setText(tpn_status.getText() + "\n" + hm);
-        // }
-        // } else {
-        // for (HashMap hm : errs) {
-        // tpn_output.setText("""
-        // --- errors found in program ---
-        // -------------------------------------------
-        // BUILD FAILED
-        // -------------------------------------------
-        // """);
-        // tpn_status.setText("[STATUS]: ERRORS found in program.\n");
+            for (HashMap hm : prnt) {
+                tpn_output.setText(tpn_output.getText() + "\n" + hm.get("TEXT"));
+            }
+            for (HashMap hm : vars) {
+                tpn_status.setText(tpn_status.getText() + "\n" + hm);
+            }
+        } else {
+            for (HashMap hm : errs) {
+                tpn_output.setText("""
+        --- errors found in program ---
+        -------------------------------------------
+        BUILD FAILED
+        -------------------------------------------
+        """);
+                tpn_status.setText("[STATUS]: ERRORS found in program.\n");
 
-        // tpn_status.setText(
-        // tpn_status.getText() + "\n" + String.format("+ <ln %d>\t%s", hm.get("LNUM"),
-        // hm.get("ERROR")));
-        // }
-        // }
+                tpn_status.setText(
+                        tpn_status.getText() + "\n" + String.format("+ <ln %d>\t%s", hm.get("LNUM"),
+                        hm.get("ERROR")));
+            }
+        }
     }
 
     // MENU: FILE
@@ -976,7 +976,6 @@ public final class GUI_main extends javax.swing.JFrame {
      * 2 - middle
      * 3 - right
      */
-
     private void fileItemClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_fileItemClicked
         if (evt.getButton() == 1 && evt.getClickCount() == 2) {
             try {
